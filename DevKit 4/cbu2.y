@@ -1,12 +1,8 @@
-
 %{
-
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <locale.h>
 
-#define _CRT_SECURE_NO_WARNINGS
 #define DEBUG	0
 
 #define	 MAXSYM	100
@@ -56,7 +52,7 @@ int		insertsym(char *);
 
 
 %%
-program	: START stmt_list END	{ if(errorcnt = 0){codegen($2); dwgen();} }
+program	: START stmt_list END	{ if (errorcnt==0) {codegen($2); dwgen();} }
 		;
 
 stmt_list: 	stmt_list stmt 	{$$=MakeListTree($1, $2);}
@@ -91,7 +87,6 @@ int main(int argc, char *argv[])
 		return(0);
 		}
 		
-	yydebug = 1;
 	fp=fopen("a.asm", "w");
 	
 	yyparse();
