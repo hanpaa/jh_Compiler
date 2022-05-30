@@ -1,8 +1,15 @@
+
 %{
+#ifdef YYDEBUG
+  yydebug = 1;
+#endif
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <locale.h>
 
+#define _CRT_SECURE_NO_WARNINGS
 #define DEBUG	0
 
 #define	 MAXSYM	100
@@ -81,7 +88,7 @@ int main(int argc, char *argv[])
 	printf("(C) Copyright by Jae Sung Lee (jasonlee@cbnu.ac.kr), 2022.\n");
 	
 	if (argc == 2)
-		yyin = fopen(argv[1], "r");
+		yyin = fopen(argv[1], "r,ccs=UTF-8");
 	else {
 		printf("Usage: cbu2 inputfile\noutput file is 'a.asm'\n");
 		return(0);
