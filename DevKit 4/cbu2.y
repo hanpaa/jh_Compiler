@@ -1,8 +1,5 @@
 
 %{
-#ifdef YYDEBUG
-  yydebug = 1;
-#endif
 
 #include <stdio.h>
 #include <string.h>
@@ -59,7 +56,7 @@ int		insertsym(char *);
 
 
 %%
-program	: START stmt_list END	{ if (errorcnt==0) {codegen($2); dwgen();} }
+program	: START stmt_list END	{ if(errorcnt = 0){codegen($2); dwgen();} }
 		;
 
 stmt_list: 	stmt_list stmt 	{$$=MakeListTree($1, $2);}
@@ -88,12 +85,13 @@ int main(int argc, char *argv[])
 	printf("(C) Copyright by Jae Sung Lee (jasonlee@cbnu.ac.kr), 2022.\n");
 	
 	if (argc == 2)
-		yyin = fopen(argv[1], "r,ccs=UTF-8");
+		yyin = fopen(argv[1], "r");
 	else {
 		printf("Usage: cbu2 inputfile\noutput file is 'a.asm'\n");
 		return(0);
 		}
 		
+	yydebug = 1;
 	fp=fopen("a.asm", "w");
 	
 	yyparse();

@@ -1,1 +1,1 @@
-win_flex --wincompat -o %1lex.c %1.l
+win_flex --wincompat -d -o %1lex.c %1.l
