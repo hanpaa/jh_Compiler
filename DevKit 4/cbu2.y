@@ -44,7 +44,7 @@ Node* MakeConditionTree(int, Node*, Node*, Node*);
 
 void codegen(Node* );
 void prtcode(Node* );
-void processCondition(Node*);
+int processCondition(Node*);
 
 
 void	dwgen();
@@ -175,9 +175,9 @@ Node * node;
         
         newNode -> type = type;
         newNode -> condition;
-        newnode -> son = operand1;
-        newnode -> brother = NULL;
-        newnode -> son -> brother = operand2;
+        newNode -> son = operand1;
+        newNode -> brother = NULL;
+        newNode -> son -> brother = operand2;
         
         return newNode;
     }
@@ -225,7 +225,8 @@ void prtcode(Node* node)
             fprintf(fp, ":=\n");
             break;
         case IF:
-            if(processCondition(node) != 0)
+//            if(processCondition(node) != 0)
+//                return
             break;
 	case STMTLIST:
 	default:
@@ -236,7 +237,7 @@ void prtcode(Node* node)
     int processCondition(Node* node){
         
         Node* condition = node -> condition;
-        value = 0;
+        int value = 0;
         
         switch(condition -> token){
             case ID:
@@ -248,7 +249,7 @@ void prtcode(Node* node)
             case '1':
             if(conditionEval(condition->son) > conditionEval(condition -> brother)){
                 node -> tokenval = 1;
-                v = 1;
+                value = 1;
             }
             break;
                 
