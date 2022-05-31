@@ -1,0 +1,1 @@
+win_bison -t -d -o%1.c %1.y

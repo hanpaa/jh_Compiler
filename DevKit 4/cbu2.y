@@ -238,7 +238,7 @@ void prtcode(Node* node)
         
         Node* condition = node -> condition;
         int value = 0;
-        
+        int yydebug = 1;
         switch(condition -> token){
             case ID:
             value = node -> brother -> tokenval;
@@ -247,7 +247,7 @@ void prtcode(Node* node)
             value = node -> tokenval;
             break;
             case '1':
-            if(conditionEval(condition->son) > conditionEval(condition -> brother)){
+            if(processCondition(condition->son) > processCondition(condition -> brother)){
                 node -> tokenval = 1;
                 value = 1;
             }
