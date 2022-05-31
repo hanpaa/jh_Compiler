@@ -61,6 +61,7 @@ int		insertsym(char *);
 %left ADD SUB
 %left MUL DIV
 
+%start program
 
 %%
 program	: START stmt_list END	{ if (errorcnt==0) {codegen($2); dwgen();} }
