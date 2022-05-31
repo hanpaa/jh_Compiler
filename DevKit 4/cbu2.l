@@ -33,6 +33,13 @@ id		{letter}({letter}|{digit})*
 "/"			{return(DIV); }
 ":="		{return(ASSGN); }
 ";"			{return(STMTEND); }
+"if"		{return(IF);}
+"else"		{return(ELSE);}
+"while"		{return(WHILE);}
+"do"		{return(DO);}
+"start"		{return(START); }
+"end"		{return(END); }
+
 ">"			{yylval.cmpnum = 1; return(CMP);}
 "<"			{yylval.cmpnum = 2; return(CMP);}
 ">="		{yylval.cmpnum = 3; return(CMP);}
@@ -40,13 +47,7 @@ id		{letter}({letter}|{digit})*
 "=="		{yylval.cmpnum = 5; return(CMP);}
 "!="		{yylval.cmpnum = 6; return(CMP);}
 
-"if"		{return(IF);}
-"else"		{return(ELSE);}
-"while"		{return(WHILE);}
-"do"		{return(DO);}
 
-"start"		{return(START); }
-"end"		{return(END); }
 {id}	{strcpy(s, yytext); temp=insertsym(s); yylval=MakeNode(ID, temp); return(ID);}
 {digit}+		{sscanf(yytext, "%d", &temp); yylval=MakeNode(NUM, temp); return(NUM);}
 

@@ -23,6 +23,7 @@ typedef struct nodeType {
     
 
 #define YYSTYPE Node*
+
 	
 int tsymbolcnt=0;
 int errorcnt=0;
@@ -36,10 +37,10 @@ extern int maxsym;
 extern int lineno;
 
 void DFSTree(Node*);
-Node * MakeOPTree(int, Node*, Node*);
-Node * MakeNode(int, int);
-Node * MakeListTree(Node*, Node*);
-Node * MakeConditionTree(int, Node*, Node*, Node*)
+Node* MakeOPTree(int, Node*, Node*);
+Node* MakeNode(int, int);
+Node* MakeListTree(Node*, Node*);
+Node* MakeConditionTree(int, Node*, Node*, Node*);
 
 void codegen(Node* );
 void prtcode(Node* );
@@ -55,16 +56,19 @@ void	substmt(int, int, int);
 int		insertsym(char *);
 %}
 
+
+%nonassoc CMP
+
 %token	ADD SUB MUL DIV ASSGN ID NUM STMTEND START END ID2 IF ELSE WHILE DO
-%nonassoc<cmpnum> CMP
+
+
 
 %left ADD SUB
 %left MUL DIV
 
-%start program
 
 %%
-program	: START stmt_list END	{ if (errorcnt==0) {codegen($2); dwgen();} }
+program	: START stmt_list END   { if (errorcnt==0) {codegen($2); dwgen();} }
 		;
 
 stmt_list: 	stmt_list stmt 	{$$=MakeListTree($1, $2);}
@@ -78,7 +82,7 @@ stmt	: 	ID ASSGN expr STMTEND	{ $1->token = ID2; $$=MakeOPTree(ASSGN, $1, $3);}
 		;
         
         
-expr	:   expr CMP term {$$=MakeOPTree(CMP, $1, $3);}
+expr	:   expr CMP term   {$$=MakeOPTree(CMP, $1, $3);}
         |   expr ADD term	{ $$=MakeOPTree(ADD, $1, $3); }
 		|	expr SUB term	{ $$=MakeOPTree(SUB, $1, $3); }
         |   expr MUL term   { $$=MakeOPTree(MUL, $1, $3); }
