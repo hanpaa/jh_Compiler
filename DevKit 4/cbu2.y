@@ -55,10 +55,7 @@ void	substmt(int, int, int);
 int		insertsym(char *);
 %}
 
-%token	ADD SUB MUL DIV ASSGN ID NUM STMTEND START END ID2
-
-%right ':='
-
+%token	ADD SUB MUL DIV ASSGN ID NUM STMTEND START END ID2 IF ELSE WHILE DO
 %nonassoc<cmpnum> CMP
 
 %left ADD SUB
@@ -174,7 +171,7 @@ Node * node;
         newNode -> condition;
         newnode -> son = operand1;
         newnode -> brother = NULL;
-        son -> brother
+        son -> brother;
         
         return newNode;
     }
