@@ -177,7 +177,7 @@ Node * node;
         newNode -> condition;
         newnode -> son = operand1;
         newnode -> brother = NULL;
-        son -> brother;
+        newnode -> son -> brother = operand2;
         
         return newNode;
     }
