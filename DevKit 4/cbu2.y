@@ -15,14 +15,18 @@
 typedef struct nodeType {
 	int token;
 	int tokenval;
+    struct nodeType* condition;
 	struct nodeType *son;
 	struct nodeType *brother;
 	} Node;
+    
+    
 
 #define YYSTYPE Node*
 	
 int tsymbolcnt=0;
 int errorcnt=0;
+int cnt=0;
 
 FILE *yyin;
 FILE *fp;
@@ -35,11 +39,15 @@ void DFSTree(Node*);
 Node * MakeOPTree(int, Node*, Node*);
 Node * MakeNode(int, int);
 Node * MakeListTree(Node*, Node*);
+Node * MakeConditionTree(int, Node*, Node*, Node*)
+
 void codegen(Node* );
-void prtcode(int, int);
+void prtcode(Node* );
+void processCondition(Node*);
+
 
 void	dwgen();
-int	gentemp();
+int	    gentemp();
 void	assgnstmt(int, int);
 void	numassgn(int, int);
 void	addstmt(int, int, int);
@@ -47,8 +55,14 @@ void	substmt(int, int, int);
 int		insertsym(char *);
 %}
 
-%token	ADD SUB ASSGN ID NUM STMTEND START END ID2
+%token	ADD SUB MUL DIV ASSGN ID NUM STMTEND START END ID2
 
+%right ':='
+
+%nonassoc<cmpnum> CMP
+
+%left ADD SUB
+%left MUL DIV
 
 
 %%
@@ -61,10 +75,14 @@ stmt_list: 	stmt_list stmt 	{$$=MakeListTree($1, $2);}
 		;
 
 stmt	: 	ID ASSGN expr STMTEND	{ $1->token = ID2; $$=MakeOPTree(ASSGN, $1, $3);}
+|   IF expr '{' stmt_list '}' { $$ = MakeConditionTree(IF,$2, $4, NULL); }
+|   IF expr '{' stmt_list '}' ELSE '{' stmt_list '}'{ $$ = MakeConditionTree(IF, $2, $4, $8);}
 		;
 
-expr	: 	expr ADD term	{ $$=MakeOPTree(ADD, $1, $3); }
+        expr	:   expr CMP term {$$=MakeOPTree(CMP, $1, $3);}
+        |   expr ADD term	{ $$=MakeOPTree(ADD, $1, $3); }
 		|	expr SUB term	{ $$=MakeOPTree(SUB, $1, $3); }
+        |   expr MUL term   { $$=MakeOPTree(MUL, $1, $3); }
 		|	term
 		;
 
@@ -73,12 +91,11 @@ term	:	ID		{ /* ID node is created in lex */ }
 		|	NUM		{ /* NUM node is created in lex */ }
 		;
 
-
 %%
 int main(int argc, char *argv[]) 
 {
 	printf("\nsample CBU compiler v2.0\n");
-	printf("(C) Copyright by Jae Sung Lee (jasonlee@cbnu.ac.kr), 2022.\n");
+	printf("2019038106 Choi Jehyeon Compiler project\n");
 	
 	if (argc == 2)
 		yyin = fopen(argv[1], "r");
@@ -148,6 +165,20 @@ Node * node;
 		return operand1;
 		}
 }
+    
+    Node* MakeConditionTree(int type, Node* condition, Node* operand1, Node* operand2){
+        
+        Node* newNode = (Node*)malloc(sizeof(Node));
+        
+        newNode -> type = type;
+        newNode -> condition;
+        newnode -> son = operand1;
+        newnode -> brother = NULL;
+        son -> brother
+        
+        return newNode;
+    }
+    
 
 void codegen(Node * root)
 {
@@ -158,37 +189,71 @@ void DFSTree(Node * n)
 {
 	if (n==NULL) return;
 	DFSTree(n->son);
-	prtcode(n->token, n->tokenval);
+	prtcode(n->token, n->tokenval, n->condition);
 	DFSTree(n->brother);
 	
 }
 
-void prtcode(int token, int val)
+void prtcode(Node* node)
 {
-	switch (token) {
-	case ID:
-		fprintf(fp,"RVALUE %s\n", symtbl[val]);
-		break;
-	case ID2:
-		fprintf(fp, "LVALUE %s\n", symtbl[val]);
-		break;
-	case NUM:
-		fprintf(fp, "PUSH %d\n", val);
-		break;
-	case ADD:
-		fprintf(fp, "+\n");
-		break;
-	case SUB:
-		fprintf(fp, "-\n");
-		break;
-	case ASSGN:
-		fprintf(fp, ":=\n");
-		break;
+	switch (node -> token) {
+        case ID:
+            fprintf(fp,"RVALUE %s\n", symtbl[node->tokenval]);
+            break;
+        case ID2:
+            fprintf(fp, "LVALUE %s\n", symtbl[node->tokenval]);
+            break;
+        case NUM:
+            fprintf(fp, "PUSH %d\n", node->tokenval);
+            break;
+        case ADD:
+            fprintf(fp, "+\n");
+            break;
+        case SUB:
+            fprintf(fp, "-\n");
+            break;
+        case MUL:
+            fprintf(fp, "*\n");
+            break;
+        case DIV:
+            fprintf(fp, "/\n");
+            break;
+        case ASSGN:
+            fprintf(fp, ":=\n");
+            break;
+        case IF:
+            if(processCondition(node) != 0)
+            break;
 	case STMTLIST:
 	default:
 		break;
 	};
 }
+
+    int processCondition(Node* node){
+        
+        Node* condition = node -> condition;
+        value = 0;
+        
+        switch(condition -> token){
+            case ID:
+            value = node -> brother -> tokenval;
+            break;
+            case NUM:
+            value = node -> tokenval;
+            break;
+            case '1':
+            if(conditionEval(condition->son) > conditionEval(condition -> brother)){
+                node -> tokenval = 1;
+                v = 1;
+            }
+            break;
+                
+            
+        }
+    
+    return value;
+    }
 
 
 /*

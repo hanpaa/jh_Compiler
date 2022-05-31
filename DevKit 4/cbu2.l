@@ -10,6 +10,7 @@ int insertsym();
 int maxsym=0;
 char s[30];
 int temp;
+int cmpnum;
 
 %}
 "sp"		[ \t]
@@ -23,15 +24,34 @@ int temp;
 %%
 {ws}	{/* do nothing */}
 {nl}	{lineno++; }
-"add"	{return(ADD); }
-"sub"		{return(SUB); }
+"+"			{return(ADD); }
+"-"			{return(SUB); }
+"*" 		{return(MUL); }
+"/"			{return(DIV); }
 ":="		{return(ASSGN); }
-";"		{return(STMTEND); }
+";"			{return(STMTEND); }
+">"			{yylval.cmpnum = 1; return(CMP);}
+"<"			{yylval.cmpnum = 2; return(CMP);}
+">="		{yylval.cmpnum = 3; return(CMP);}
+"<="		{yylval.cmpnum = 4; return(CMP);}
+"=="		{yylval.cmpnum = 5; return(CMP);}
+"!="		{yylval.cmpnum = 6; return(CMP);}
+
+
+
 "start"		{return(START); }
 "end"		{return(END); }
 {id}	{strcpy(s, yytext); temp=insertsym(s); yylval=MakeNode(ID, temp); return(ID);}
 {digit}+		{sscanf(yytext, "%d", &temp); yylval=MakeNode(NUM, temp); return(NUM);}
 .		{printf("invalid token %s\n", yytext); }
+
+"if"		{return(IF);}
+"else"		{return(ELSE);}
+"while"		{return(WHILE);}
+"do"		{return(DO);}
+
+
+
 %%
 
 int insertsym(s)
