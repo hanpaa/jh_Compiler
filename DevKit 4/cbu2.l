@@ -14,15 +14,16 @@ int cmpnum;
 
 %}
 
-%%
+
 sp			[ \t]
 ws			{sp}+
 nl			\n
-eletter		[A-Za-z]
+eletter [A-Za-z]
 hletter		[\xb0-\xfe][\xa0-\xfe]
 letter		({eletter}|{hletter})
 digit		[0-9]
 id		{letter}({letter}|{digit})*
+%%
 {ws}	{/* do nothing */}
 {nl}	{lineno++; }
 +			{return(ADD); }
@@ -37,19 +38,18 @@ id		{letter}({letter}|{digit})*
 <=		{yylval.cmpnum = 4; return(CMP);}
 ==		{yylval.cmpnum = 5; return(CMP);}
 !=		{yylval.cmpnum = 6; return(CMP);}
-
-
-
 start		{return(START); }
 end		{return(END); }
-{id}	{strcpy(s, yytext); temp=insertsym(s); yylval=MakeNode(ID, temp); return(ID);}
-{digit}+		{sscanf(yytext, "%d", &temp); yylval=MakeNode(NUM, temp); return(NUM);}
-.		{printf("invalid token %s\n", yytext); }
-
 if		{return(IF);}
 else		{return(ELSE);}
 while		{return(WHILE);}
 do		{return(DO);}
+
+
+{id}	{strcpy(s, yytext); temp=insertsym(s); yylval=MakeNode(ID, temp); return(ID);}
+{digit}+		{sscanf(yytext, "%d", &temp); yylval=MakeNode(NUM, temp); return(NUM);}
+.		{printf("invalid token %s\n", yytext); }
+
 
 
 
