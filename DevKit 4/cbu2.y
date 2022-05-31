@@ -173,7 +173,7 @@ Node * node;
         
         Node* newNode = (Node*)malloc(sizeof(Node));
         
-        newNode -> type = type;
+        newNode -> token = type;
         newNode -> condition;
         newNode -> son = operand1;
         newNode -> brother = NULL;
