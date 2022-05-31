@@ -192,7 +192,7 @@ void DFSTree(Node * n)
 {
 	if (n==NULL) return;
 	DFSTree(n->son);
-	prtcode(n->token, n->tokenval, n->condition);
+	prtcode(n);
 	DFSTree(n->brother);
 	
 }
