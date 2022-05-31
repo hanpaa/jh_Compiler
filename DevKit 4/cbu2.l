@@ -13,15 +13,15 @@ int temp;
 int cmpnum;
 
 %}
+%%
 "sp"		[ \t]
 "ws"		{sp}+
 "nl"		\n
 "eletter"	[A-Za-z]
 "hletter"	[\xb0-\xfe][\xa0-\xfe]
 "letter"	({eletter}|{hletter})
-"digit"	[0-9]
+"digit"		[0-9]
 "id"		{letter}({letter}|{digit})*
-%%
 {ws}	{/* do nothing */}
 {nl}	{lineno++; }
 "+"			{return(ADD); }

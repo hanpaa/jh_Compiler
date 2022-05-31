@@ -72,11 +72,12 @@ stmt_list: 	stmt_list stmt 	{$$=MakeListTree($1, $2);}
 		;
 
 stmt	: 	ID ASSGN expr STMTEND	{ $1->token = ID2; $$=MakeOPTree(ASSGN, $1, $3);}
-|   IF expr '{' stmt_list '}' { $$ = MakeConditionTree(IF,$2, $4, NULL); }
-|   IF expr '{' stmt_list '}' ELSE '{' stmt_list '}'{ $$ = MakeConditionTree(IF, $2, $4, $8);}
+        |   IF expr '{' stmt_list '}' { $$ = MakeConditionTree(IF,$2, $4, NULL); }
+        |   IF expr '{' stmt_list '}' ELSE '{' stmt_list '}'{ $$ = MakeConditionTree(IF, $2, $4, $8);}
 		;
-
-        expr	:   expr CMP term {$$=MakeOPTree(CMP, $1, $3);}
+        
+        
+expr	:   expr CMP term {$$=MakeOPTree(CMP, $1, $3);}
         |   expr ADD term	{ $$=MakeOPTree(ADD, $1, $3); }
 		|	expr SUB term	{ $$=MakeOPTree(SUB, $1, $3); }
         |   expr MUL term   { $$=MakeOPTree(MUL, $1, $3); }
