@@ -1,5 +1,5 @@
-시작
-가:=3;
-나:=7;
-Size:= 나 빼기 가 더하기 1;
-끝
+start
+a:=3;
+b:=7;
+Size:= b sub a add 1;
+end

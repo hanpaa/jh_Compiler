@@ -1,6 +1,7 @@
 %{
 #include <string.h>
 #include "cbu2.h"
+#define _CRT_SECURE_NO_WARNINGS
 #define MAXSYM	100
 #define	MAXSYMLEN	20
 char symtbl[MAXSYM][MAXSYMLEN];
@@ -11,23 +12,23 @@ char s[30];
 int temp;
 
 %}
-sp		[ \t]
-ws		{sp}+
-nl		\n
-eletter	[A-Za-z]
-hletter	[\xb0-\xfe][\xa0-\xfe]
-letter	({eletter}|{hletter})
-digit	[0-9]
-id		{letter}({letter}|{digit})*
+"sp"		[ \t]
+"ws"		{sp}+
+"nl"		\n
+"eletter"	[A-Za-z]
+"hletter"	[\xb0-\xfe][\xa0-\xfe]
+"letter"	({eletter}|{hletter})
+"digit"	[0-9]
+"id"		{letter}({letter}|{digit})*
 %%
 {ws}	{/* do nothing */}
 {nl}	{lineno++; }
-더하기	{return(ADD); }
-빼기		{return(SUB); }
-:=		{return(ASSGN); }
-;		{return(STMTEND); }
-시작		{return(START); }
-끝		{return(END); }
+"add"	{return(ADD); }
+"sub"		{return(SUB); }
+":="		{return(ASSGN); }
+";"		{return(STMTEND); }
+"start"		{return(START); }
+"end"		{return(END); }
 {id}	{strcpy(s, yytext); temp=insertsym(s); yylval=MakeNode(ID, temp); return(ID);}
 {digit}+		{sscanf(yytext, "%d", &temp); yylval=MakeNode(NUM, temp); return(NUM);}
 .		{printf("invalid token %s\n", yytext); }
