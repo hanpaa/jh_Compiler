@@ -67,9 +67,8 @@ int		insertsym(char *);
 }
 
 %nonassoc <cmpNum> CMP
-%token <integer> NUM
 %token <c> ADD SUB MUL DIV ASSGN STMTEND START END ID2 IF ELSE WHILE DO
-%token <node> ID
+%token <node> ID NUM
 %type <node> stmt_list stmt expr term
 
 
