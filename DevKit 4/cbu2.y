@@ -186,7 +186,6 @@ Node * node;
     Node* MakeConditionTree(int type, Node* condition, Node* operand1, Node* operand2){
         
         Node* newNode = (Node*)malloc(sizeof(Node));
-        printf("token : %d condtion type : %d ", type, condition -> tokenval);
         newNode -> token = type;
         newNode -> condition;
         newNode -> son = operand1;
@@ -240,11 +239,11 @@ void prtcode(Node* node)
             fprintf(fp, ":=\n");
             break;
         case IF:
-            if(processCondition(node) != 0)
-            fprintf(fp,"1");
+            if(processCondition(node->son) != 0)
+                fprintf(fp,"1");
             else
-            fprintf(fp,"0");
-            fprintf(fp, "GOFALSE OUTIF%d\n", node->label);
+                fprintf(fp,"0");
+            fprintf(fp, "GOFALSE OUTIF%d\n", node->son->label);
 	case STMTLIST:
 	default:
 		break;
