@@ -75,30 +75,30 @@ int		insertsym(char *);
 
 
 %%
-program	: START stmt_list END   { if (errorcnt==0) {codegen($2); dwgen();} }
+program	: START stmt_list END   { if (errorcnt==0) {codegen($2); dwgen();} //1}
 		;
 
-stmt_list: 	stmt_list stmt 	{$$=MakeListTree($1, $2);}
-		|	stmt			{$$=MakeListTree(NULL, $1);}
-		| 	error STMTEND	{ errorcnt++; yyerrok;}
+stmt_list: 	stmt_list stmt 	{$$=MakeListTree($1, $2);//2}
+		|	stmt			{$$=MakeListTree(NULL, $1);//3}
+		| 	error STMTEND	{ errorcnt++; yyerrok;//4}
 		;
 
-stmt	: 	IF expr '{' stmt_list '}' { $$ = MakeConditionTree(IF,$2, $4, NULL); }
-        |   IF expr '{' stmt_list '}' ELSE '{' stmt_list '}'{ $$ = MakeConditionTree(IF, $2, $4, $8);}
-        |   ID ASSGN expr STMTEND    { $1->token = ID2; $$=MakeOPTree(ASSGN, $1, $3);}
-		;
+stmt	: 	ID ASSGN expr STMTEND	{ $1->token = ID2; $$=MakeOPTree(ASSGN, $1, $3);//5}
+        |   IF '(' expr ')' '{' stmt_list '}' { $$ = MakeConditionTree(IF,$3, $6, NULL); //6}
+        |   IF '(' expr ')' '{' stmt_list '}' ELSE '{' stmt_list '}'{ $$ = MakeConditionTree(IF, $3, $6, $10);//7}
+        ;
         
         
-expr	:   expr CMP term   {$$=MakeOPTree(CMP, $1, $3);}
-        |   expr ADD term	{ $$=MakeOPTree(ADD, $1, $3); }
-		|	expr SUB term	{ $$=MakeOPTree(SUB, $1, $3); }
-        |   expr MUL term   { $$=MakeOPTree(MUL, $1, $3); }
+expr	:   expr CMP term   {$$=MakeOPTree(CMP, $1, $3);//8}
+        |   expr ADD term	{ $$=MakeOPTree(ADD, $1, $3); //9}
+		|	expr SUB term	{ $$=MakeOPTree(SUB, $1, $3); //10}
+        |   expr MUL term   { $$=MakeOPTree(MUL, $1, $3); //11}
 		|	term
 		;
 
 
-term	:	ID		{ /* ID node is created in lex */ }
-		|	NUM		{ /* NUM node is created in lex */ }
+term	:	ID		{ /* ID node is created in lex */ //13}
+		|	NUM		{ /* NUM node is created in lex */ //14}
 		;
 
 %%
