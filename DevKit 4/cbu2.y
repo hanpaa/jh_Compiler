@@ -106,9 +106,9 @@ term	:	ID		{ /* ID node is created in lex 13*/ }
 int main(int argc, char *argv[]) 
 {
     
-#ifdef YYDEBUG
-  yydebug = 1;
-#endif
+//#ifdef YYDEBUG
+//  yydebug = 1;
+//#endif
 
 	printf("\nsample CBU compiler v2.0\n");
 	printf("2019038106 Choi Jehyeon Compiler project\n");
@@ -245,34 +245,34 @@ void prtcode(Node* node)
                 fprintf(fp,"0");
             fprintf(fp, "GOFALSE OUTIF%d\n", node->son->label);
             break;
-	case STMTLIST:
-	default:
-		break;
+        case STMTLIST:
+        default:
+            break;
 	};
 }
 
     int processCondition(Node* node){
         
-        Node* condition = node -> condition;
-        int value = 0;
-        int yydebug = 1;
-        switch(condition -> token){
-            case ID:
-            value = node -> brother -> tokenval;
-            break;
-            case NUM:
-            value = node -> tokenval;
-            break;
-            case '1':
-            if(processCondition(condition->son) > processCondition(condition -> brother)){
-                condition -> tokenval = 1;
-                value = 1;
-            }
-            break;
-                
-            default:
-            break;
-        }
+        int value = 1;
+//        Node* condition = node -> condition;
+//        int value = 0;
+//        switch(condition -> token){
+//            case ID:
+//            value = node -> brother -> tokenval;
+//            break;
+//            case NUM:
+//            value = node -> tokenval;
+//            break;
+//            case '1':
+//            if(processCondition(condition->son) > processCondition(condition -> brother)){
+//                condition -> tokenval = 1;
+//                value = 1;
+//            }
+//            break;
+//
+//            default:
+//            break;
+//        }
     
     return value;
     }
