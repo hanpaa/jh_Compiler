@@ -40,12 +40,12 @@ id		{letter}({letter}|{digit})*
 "start"		{return(START); }
 "end"		{return(END); }
 
-">"			{yylval = 1; return(CMP);}
-"<"			{yylval = 2; return(CMP);}
-">="		{yylval = 3; return(CMP);}
-"<="		{yylval = 4; return(CMP);}
-"=="		{yylval = 5; return(CMP);}
-"!="		{yylval = 6; return(CMP);}
+">"			{yylval.cmpNum = 1; return(CMP);}
+"<"			{yylval.cmpNum = 2; return(CMP);}
+">="		{yylval.cmpNum = 3; return(CMP);}
+"<="		{yylval.cmpNum = 4; return(CMP);}
+"=="		{yylval.cmpNum = 5; return(CMP);}
+"!="		{yylval.cmpNum = 6; return(CMP);}
 
 
 {id}	{strcpy(s, yytext); temp=insertsym(s); yylval=MakeNode(ID, temp); return(ID);}

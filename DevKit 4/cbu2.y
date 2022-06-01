@@ -56,11 +56,18 @@ void	substmt(int, int, int);
 int		insertsym(char *);
 %}
 
+%union{
+    *Node node;
+    int integer;
+    double doub;
+    int cmpNum;
+    char c;
+}
 
-%nonassoc CMP
-
-%token	ADD SUB MUL DIV ASSGN ID NUM STMTEND START END ID2 IF ELSE WHILE DO
-
+%nonassoc<cmpNum> CMP
+//%token <integer> NUM
+%token <c> ADD SUB MUL DIV ASSGN ID NUM STMTEND START END ID2 IF ELSE WHILE DO
+%type <node> stmt_list stmt expr term
 
 
 %left ADD SUB
@@ -177,7 +184,7 @@ Node * node;
         newNode -> condition;
         newNode -> son = operand1;
         newNode -> brother = NULL;
-        newNode -> son -> brother = operand2;
+        operand1 -> brother = operand2;
         
         return newNode;
     }
