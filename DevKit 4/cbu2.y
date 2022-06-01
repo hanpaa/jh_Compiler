@@ -17,7 +17,7 @@
 typedef struct nodeType {
 	int token;
 	int tokenval;
-    int LABEL;
+    int label;
     struct nodeType* condition;
 	struct nodeType *son;
 	struct nodeType *brother;
@@ -85,7 +85,7 @@ stmt_list: 	stmt_list stmt 	{$$=MakeListTree($1, $2);}
 		;
 
 stmt	: 	ID ASSGN expr STMTEND	{ $1->token = ID2; $$=MakeOPTree(ASSGN, $1, $3);}
-        |   IF '(' expr ')' '{' stmt_list '}' { $$ = MakeConditionTree(IF,$3, $6, NULL); fprintf(fp, "LABEL OUTIF%D", $3 -> LABEL)}
+|   IF '(' expr ')' '{' stmt_list '}' { $$ = MakeConditionTree(IF,$3, $6, NULL);}
         |   IF '(' expr ')' '{' stmt_list '}' ELSE '{' stmt_list '}'{ $$ = MakeConditionTree(IF, $3, $6, $10);}
         ;
         
@@ -186,11 +186,11 @@ Node * node;
     Node* MakeConditionTree(int type, Node* condition, Node* operand1, Node* operand2){
         
         Node* newNode = (Node*)malloc(sizeof(Node));
-        
+        printf("token : %d condtion type : %d ", type, condition -> tokenval);
         newNode -> token = type;
         newNode -> condition;
         newNode -> son = operand1;
-        newnode -> LABEL = cnt+1;
+        newNode -> label = cnt+1;
         newNode -> brother = NULL;
         operand1 -> brother = operand2;
         
@@ -244,7 +244,7 @@ void prtcode(Node* node)
             fprintf(fp,"1");
             else
             fprintf(fp,"0");
-            fprintf(fp, "GOFALSE OUTIF%d\n", node->LABEL);
+            fprintf(fp, "GOFALSE OUTIF%d\n", node->label);
 	case STMTLIST:
 	default:
 		break;
