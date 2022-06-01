@@ -85,7 +85,8 @@ stmt_list: 	stmt_list stmt 	{$$=MakeListTree($1, $2);}
 		;
 
 stmt	: 	ID ASSGN expr STMTEND	{ $1->token = ID2; $$=MakeOPTree(ASSGN, $1, $3);}
-|       IF '(' expr ')' '{' stmt_list '}' { $$ = MakeConditionTree(IF,$3, $6, NULL);}
+        |   IF '(' expr ')' '{' stmt_list '}' { $$ = MakeConditionTree(IF,$3, $6, NULL);}
+        |   IF '(' expr ')' '{' stmt_list '}' ELSE '{' stmt_list '}' { $$ = MakeConditionTree(IF,$3, $6, $10);}
 |       expr
         ;
         
@@ -191,15 +192,17 @@ Node * node;
         newNode -> tokenval = type;
         newNode -> son = condition;
         newNode -> brother = NULL;
-        newNode -> label = cnt+1;
+        
+        //stmtlist label생성
+        operand1-> label = cnt+1;
         newNode -> son -> brother = operand1;
+        
         operand1 -> brother = operand2;
 
         condition -> condition = processCondition(condition);
         condition -> token = STARTSTMT;
         condition -> tokenval = type;
         condition -> label = cnt;
-        
         
         return newNode;
     }
@@ -246,19 +249,28 @@ void prtcode(Node* node)
         case ASSGN:
             fprintf(fp, ":=\n");
             break;
-        case IF:
-            fprintf(fp, "LABEL OUT%d\n", node->label);
+        case IF:
             break;
         case STARTSTMT:
+            //condition 만족하지 못할때 이동,
             fprintf(fp,"%d\n",node->condition);
             fprintf(fp, "GOFALSE OUT%d\n", node->label);
             break;
         case STMTLIST:
+            //DFS stmtlist 문 트리 끝날때, 만약 condition 만족하지 못하면 나갈 자리생성
+            fprintf(fp, "LABEL STMTLIST OUT%d\n", node->label);
+            break;
+            
         default:
             break;
 	};
 }
 
+    /**
+        condition check
+                TRUE = return 1
+                FALSE = return 0
+     */
     int processCondition(Node* node){
         
         int value = 1;
