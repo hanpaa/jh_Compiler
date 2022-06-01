@@ -317,6 +317,20 @@ void prtcode(Node* node)
                     }
                     break;
                     
+                    case ADD:
+                    value = processCondition(node->son) + processCondition(node -> brother);
+                    break;
+                    
+                    case SUB:
+                    value = processCondition(node->son) - processCondition(node -> brother);
+                    break;
+                    
+                    case DIV:
+                    value = processCondition(node->son) / processCondition(node -> brother);
+                    break;
+                    case MUL:
+                    value = processCondition(node->son) * processCondition(node -> brother);
+                    break;
                     default:
                     break;
                 }
