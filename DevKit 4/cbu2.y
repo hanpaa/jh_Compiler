@@ -5,9 +5,7 @@
 
 #define DEBUG	0
 
-#ifdef YYDEBUG
-  yydebug = 1;
-#endif
+
 
 #define	 MAXSYM	100
 #define	 MAXSYMLEN	20
@@ -85,9 +83,9 @@ stmt_list: 	stmt_list stmt 	{$$=MakeListTree($1, $2);}
 		| 	error STMTEND	{ errorcnt++; yyerrok;}
 		;
 
-stmt	: 	ID ASSGN expr STMTEND	{ $1->token = ID2; $$=MakeOPTree(ASSGN, $1, $3);}
-        |   IF expr '{' stmt_list '}' { $$ = MakeConditionTree(IF,$2, $4, NULL); }
+stmt	: 	IF expr '{' stmt_list '}' { $$ = MakeConditionTree(IF,$2, $4, NULL); }
         |   IF expr '{' stmt_list '}' ELSE '{' stmt_list '}'{ $$ = MakeConditionTree(IF, $2, $4, $8);}
+        |   ID ASSGN expr STMTEND    { $1->token = ID2; $$=MakeOPTree(ASSGN, $1, $3);}
 		;
         
         
@@ -106,6 +104,11 @@ term	:	ID		{ /* ID node is created in lex */ }
 %%
 int main(int argc, char *argv[]) 
 {
+    
+#ifdef YYDEBUG
+  yydebug = 1;
+#endif
+
 	printf("\nsample CBU compiler v2.0\n");
 	printf("2019038106 Choi Jehyeon Compiler project\n");
     int yydebug = 1;
