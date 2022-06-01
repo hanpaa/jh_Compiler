@@ -87,6 +87,7 @@ stmt_list: 	stmt_list stmt 	{$$=MakeListTree($1, $2);}
 stmt	: 	ID ASSGN expr STMTEND	{ $1->token = ID2; $$=MakeOPTree(ASSGN, $1, $3);}
         |   IF '(' expr ')' '{' stmt_list '}' { $$ = MakeConditionTree(IF,$3, $6, NULL);}
         |   IF '(' expr ')' '{' stmt_list '}' ELSE '{' stmt_list '}' { $$ = MakeConditionTree(IF,$3, $6, $10);}
+        |   WHILE '(' expr ')' '{' stmt_list '}' { $$ = MakeConditionTree(WHILE, $3, $6, NULL);}
         ;
         
         
@@ -249,12 +250,12 @@ void prtcode(Node* node)
             break;
         case STARTSTMT:
             //condition 만족하지 못할때 이동,
-            fprintf(fp,"%d\n",node->condition);
             fprintf(fp, "GOFALSE OUT%d\n", node->label);
+            fprintf(fp, "PUSH %d\n",node->condition);
             break;
         case STMTLIST:
             //DFS stmtlist 문 트리 끝날때, 만약 condition 만족하지 못하면 나갈 자리생성
-            fprintf(fp, "LABEL STMTLIST OUT%d\n", node->label);
+            fprintf(fp, "LABEL OUT%d\n", node->label);
             break;
         default:
             break;
@@ -268,28 +269,58 @@ void prtcode(Node* node)
      */
     int processCondition(Node* node){
         
-        int value = 1;
+        Node* target = node -> son;
+        
+                int value = 0;
+                switch(node -> token){
+                    case ID:
+                    value = node -> brother -> tokenval;
+                    break;
+                    case NUM:
+                    value = node -> tokenval;
+                    break;
+                    case '1':
+                    if(processCondition(condition->son) > processCondition(condition -> brother)){
+                        value = 1;
+                    }
+                    break;
+                    case '2':
+                    if(processCondition(condition->son) < processCondition(condition -> brother)){
+                        value = 1;
+                    }
+                    break;
+                    
+                    case '3':
+                    if(processCondition(condition->son) >= processCondition(condition -> brother)){
+                        value = 1;
+                    }
+                    break;
+        
+                    case '4':
+                    if(processCondition(condition->son) <= processCondition(condition -> brother)){
+                        value = 1;
+                    }
+                    break;
+                    
+                    case '5':
+                    if(processCondition(condition->son) == processCondition(condition -> brother)){
+                        value = 1;
+                    }
+                    break;
+                    
+                    case '6':
+                    if(processCondition(condition->son) != processCondition(condition -> brother)){
+                        value = 1;
+                    }
+                    break;
+                    
+                    default:
+                    break;
+                }
+        
         free(node -> son);
         node -> son = NULL;
-//        Node* condition = node -> condition;
-//        int value = 0;
-//        switch(condition -> token){
-//            case ID:
-//            value = node -> brother -> tokenval;
-//            break;
-//            case NUM:
-//            value = node -> tokenval;
-//            break;
-//            case '1':
-//            if(processCondition(condition->son) > processCondition(condition -> brother)){
-//                condition -> tokenval = 1;
-//                value = 1;
-//            }
-//            break;
-//
-//            default:
-//            break;
-//        }
+
     
     return value;
     }
