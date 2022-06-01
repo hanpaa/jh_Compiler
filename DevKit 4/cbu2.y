@@ -57,7 +57,7 @@ int		insertsym(char *);
 %}
 
 %union{
-    *Node node;
+    struct nodeType* node;
     int integer;
     double doub;
     int cmpNum;
