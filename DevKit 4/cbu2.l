@@ -48,8 +48,8 @@ id		{letter}({letter}|{digit})*
 "!="		{yylval.cmpNum = 6; return(CMP);}
 
 
-{id}	{strcpy(s, yytext); temp=insertsym(s); yylval=MakeNode(ID, temp); return(ID);}
-{digit}+		{sscanf(yytext, "%d", &temp); yylval=MakeNode(NUM, temp); return(NUM);}
+{id}	{strcpy(s, yytext); temp=insertsym(s); yylval.node=MakeNode(ID, temp); return(ID);}
+{digit}+		{sscanf(yytext, "%d", &temp); yylval.node=MakeNode(NUM, temp); return(NUM);}
 
 "."		{printf("invalid token %s\n", yytext); }
 

@@ -5,6 +5,10 @@
 
 #define DEBUG	0
 
+#ifdef YYDEBUG
+  yydebug = 1;
+#endif
+
 #define	 MAXSYM	100
 #define	 MAXSYMLEN	20
 #define	 MAXTSYMLEN	15
@@ -63,8 +67,8 @@ int		insertsym(char *);
 }
 
 %nonassoc <cmpNum> CMP
-//%token <integer> NUM
-%token <c> ADD SUB MUL DIV ASSGN STMTEND START END ID2 IF ELSE WHILE DO NUM
+%token <integer> NUM
+%token <c> ADD SUB MUL DIV ASSGN STMTEND START END ID2 IF ELSE WHILE DO
 %token <node> ID
 %type <node> stmt_list stmt expr term
 
@@ -105,7 +109,8 @@ int main(int argc, char *argv[])
 {
 	printf("\nsample CBU compiler v2.0\n");
 	printf("2019038106 Choi Jehyeon Compiler project\n");
-	
+    int yydebug = 1;
+    
 	if (argc == 2)
 		yyin = fopen(argv[1], "r");
 	else {
