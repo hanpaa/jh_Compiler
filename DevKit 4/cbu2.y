@@ -67,7 +67,7 @@ int		insertsym(char *);
 }
 
 %nonassoc <cmpNum> CMP
-%token <c> ADD SUB MUL DIV ASSGN STMTEND START END ID2 IF ELSE WHILE DO STARTSTMT CONDITION
+%token <c> ADD SUB MUL DIV ASSGN STMTEND START END ID2 IF ELSE WHILE DO STARTSTMT CONDITION PRINT
 %token <node> ID NUM
 %type <node> stmt_list stmt expr term
 
@@ -86,6 +86,7 @@ stmt_list: 	stmt_list stmt 	{$$=MakeListTree($1, $2);}
 		;
 
 stmt	: 	ID ASSGN expr STMTEND	{ $1->token = ID2; $$=MakeOPTree(ASSGN, $1, $3);}
+        |   PRINT '(' expr ')' STMTEND {$$=MakeOPTree(PRINT, $3, NULL);}
         |   IF '(' expr ')' '{' stmt_list '}' { $$ = MakeConditionTree(IF,$3, $6, NULL);}
         |   IF '(' expr ')' '{' stmt_list '}' ELSE '{' stmt_list '}' { $$ = MakeConditionTree(IF,$3, $6, $10); loopoutcnt++;}
         |   WHILE '(' expr ')' '{' stmt_list '}' { $$ = MakeConditionTree(WHILE, $3, $6, NULL);}
@@ -96,7 +97,7 @@ expr	:   expr CMP term   {$$=MakeOPTree(CMP, $1, $3);}
         |   expr ADD term	{ $$=MakeOPTree(ADD, $1, $3); }
 		|	expr SUB term	{ $$=MakeOPTree(SUB, $1, $3); }
         |   expr MUL term   { $$=MakeOPTree(MUL, $1, $3); }
-        |   PRINT '(' expr ')' {$$=MakeOPTree(PRINT, $3, NULL);}
+        
 		|	term
 		;
 
@@ -255,9 +256,9 @@ void prtcode(Node* node)
             fprintf(fp, ":=\n");
             break;
         case PRINT:
-        prtcode(node);
+        prtcode(node->son);
         fprintf(fp,"OUTNUM\n");
-        if()
+	break;
         case STARTSTMT:
             //condition 만족하지 못할때 이동,
             
