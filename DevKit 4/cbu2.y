@@ -66,7 +66,7 @@ int		insertsym(char *);
 }
 
 %nonassoc <cmpNum> CMP
-%token <c> ADD SUB MUL DIV ASSGN STMTEND START END ID2 IF ELSE WHILE DO STARTSTMT
+%token <c> ADD SUB MUL DIV ASSGN STMTEND START END ID2 IF ELSE WHILE DO STARTSTMT CONDITION
 %token <node> ID NUM
 %type <node> stmt_list stmt expr term
 
@@ -172,6 +172,8 @@ Node * node;
 	if (operand1 == NULL){
 		newnode = (Node *)malloc(sizeof (Node));
 		newnode->token = newnode-> tokenval = STMTLIST;
+        //stmtlist label생성
+        newnode-> label = cnt+1;
 		newnode->son = operand2;
 		newnode->brother = NULL;
 		return newnode;
@@ -193,16 +195,16 @@ Node * node;
         newNode -> son = condition;
         newNode -> brother = NULL;
         
-        //stmtlist label생성
-        operand1-> label = cnt+1;
+        
         newNode -> son -> brother = operand1;
         
         operand1 -> brother = operand2;
 
+        condition -> token = condition -> tokenval = CONDITION;
         condition -> condition = processCondition(condition);
         condition -> token = STARTSTMT;
         condition -> tokenval = type;
-        condition -> label = cnt;
+        condition -> label = operand1 -> label;
         
         return newNode;
     }
@@ -273,6 +275,7 @@ void prtcode(Node* node)
     int processCondition(Node* node){
         
         int value = 1;
+        free(node -> son);
 //        Node* condition = node -> condition;
 //        int value = 0;
 //        switch(condition -> token){
