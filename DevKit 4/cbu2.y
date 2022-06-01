@@ -17,6 +17,7 @@
 typedef struct nodeType {
 	int token;
 	int tokenval;
+    int LABEL;
     struct nodeType* condition;
 	struct nodeType *son;
 	struct nodeType *brother;
@@ -84,7 +85,7 @@ stmt_list: 	stmt_list stmt 	{$$=MakeListTree($1, $2);}
 		;
 
 stmt	: 	ID ASSGN expr STMTEND	{ $1->token = ID2; $$=MakeOPTree(ASSGN, $1, $3);}
-        |   IF '(' expr ')' '{' stmt_list '}' { $$ = MakeConditionTree(IF,$3, $6, NULL); }
+        |   IF '(' expr ')' '{' stmt_list '}' { $$ = MakeConditionTree(IF,$3, $6, NULL); fprintf(fp, "LABEL OUTIF%D", $3 -> LABEL)}
         |   IF '(' expr ')' '{' stmt_list '}' ELSE '{' stmt_list '}'{ $$ = MakeConditionTree(IF, $3, $6, $10);}
         ;
         
@@ -189,6 +190,7 @@ Node * node;
         newNode -> token = type;
         newNode -> condition;
         newNode -> son = operand1;
+        newnode -> LABEL = cnt+1;
         newNode -> brother = NULL;
         operand1 -> brother = operand2;
         
@@ -238,9 +240,11 @@ void prtcode(Node* node)
             fprintf(fp, ":=\n");
             break;
         case IF:
-//            if(processCondition(node) != 0)
-//                return
-            break;
+            if(processCondition(node) != 0)
+            fprintf(fp,"1");
+            else
+            fprintf(fp,"0");
+            fprintf(fp, "GOFALSE OUTIF%d\n", node->LABEL);
 	case STMTLIST:
 	default:
 		break;
@@ -261,7 +265,7 @@ void prtcode(Node* node)
             break;
             case '1':
             if(processCondition(condition->son) > processCondition(condition -> brother)){
-                node -> tokenval = 1;
+                condition -> tokenval = 1;
                 value = 1;
             }
             break;
