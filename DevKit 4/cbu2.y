@@ -240,10 +240,10 @@ void prtcode(Node* node)
             break;
         case IF:
             if(processCondition(node->son) != 0)
-                fprintf(fp,"1");
+                fprintf(fp,"1\n");
             else
-                fprintf(fp,"0");
-            fprintf(fp, "GOFALSE OUTIF%d\n", node->son->label);
+                fprintf(fp,"0\n");
+            fprintf(fp, "GOFALSE OUTIF%d\n", node->label);
             break;
         case STMTLIST:
         default:
