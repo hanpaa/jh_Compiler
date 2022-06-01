@@ -18,6 +18,7 @@ typedef struct nodeType {
 	int token;
 	int tokenval;
     int label;
+    int condition;
 	struct nodeType *son;
 	struct nodeType *brother;
 	} Node;
@@ -187,7 +188,8 @@ Node * node;
       
         Node* newNode = (Node*)malloc(sizeof(Node));
         newNode->token = type;
-        newNode -> tokenval = processCondition(condition);
+        newNode -> tokenval = type;
+        newNode -> condition = processCondition(condition);
         newNode -> son = condition;
         newNode -> brother = NULL;
         newNode -> label = cnt+1;
@@ -195,6 +197,7 @@ Node * node;
         operand1 -> brother = operand2;
         
         Node* node = operand1->son;
+        
         while (node->brother != NULL) node = node->brother;
         Node* startIF = (Node*)malloc(sizeof(Node));
         startIF -> token = STARTSTMT;
@@ -249,11 +252,11 @@ void prtcode(Node* node)
             fprintf(fp, ":=\n");
             break;
         case IF:
-            fprintf(fp,"%d",node->son->tokenval)
+            fprintf(fp,"%d\n",node->son->condition);
             fprintf(fp, "LABEL OUT%d\n", node->son->label);
             break;
         case STARTSTMT:
-            fprintf(fp, "GOFALSE OUT%d\n", node->label)
+            fprintf(fp, "GOFALSE OUT%d\n", node->label);
         case STMTLIST:
         default:
             break;
