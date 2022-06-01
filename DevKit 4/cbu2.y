@@ -250,8 +250,9 @@ void prtcode(Node* node)
             break;
         case STARTSTMT:
             //condition 만족하지 못할때 이동,
-            fprintf(fp, "GOFALSE OUT%d\n", node->label);
             fprintf(fp, "PUSH %d\n",node->condition);
+            fprintf(fp, "GOFALSE OUT%d\n", node->label);
+            
             break;
         case STMTLIST:
             //DFS stmtlist 문 트리 끝날때, 만약 condition 만족하지 못하면 나갈 자리생성
@@ -269,7 +270,7 @@ void prtcode(Node* node)
      */
     int processCondition(Node* node){
         
-        Node* target = node -> son;
+        
         
                 int value = 0;
                 switch(node -> token){
@@ -280,36 +281,37 @@ void prtcode(Node* node)
                     value = node -> tokenval;
                     break;
                     case '1':
-                    if(processCondition(condition->son) > processCondition(condition -> brother)){
+                    //
+                    if(processCondition(node -> son) > processCondition(node -> brother)){
                         value = 1;
                     }
                     break;
                     case '2':
-                    if(processCondition(condition->son) < processCondition(condition -> brother)){
+                    if(processCondition(node ->son) < processCondition(node -> brother)){
                         value = 1;
                     }
                     break;
                     
                     case '3':
-                    if(processCondition(condition->son) >= processCondition(condition -> brother)){
+                    if(processCondition(node->son) >= processCondition(node -> brother)){
                         value = 1;
                     }
                     break;
         
                     case '4':
-                    if(processCondition(condition->son) <= processCondition(condition -> brother)){
+                    if(processCondition(node->son) <= processCondition(node -> brother)){
                         value = 1;
                     }
                     break;
                     
                     case '5':
-                    if(processCondition(condition->son) == processCondition(condition -> brother)){
+                    if(processCondition(node>son) == processCondition(node -> brother)){
                         value = 1;
                     }
                     break;
                     
                     case '6':
-                    if(processCondition(condition->son) != processCondition(condition -> brother)){
+                    if(processCondition(node->son) != processCondition(node -> brother)){
                         value = 1;
                     }
                     break;
@@ -318,8 +320,8 @@ void prtcode(Node* node)
                     break;
                 }
         
-        free(node -> son);
-        node -> son = NULL;
+//        free(node -> son);
+//        node -> son = NULL;
 
     
     return value;
