@@ -1,5 +1,0 @@
-start
-a:=3;
-b:=7;
-Size:= b sub a add 1;
-end
