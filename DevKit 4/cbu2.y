@@ -29,6 +29,7 @@ typedef struct nodeType {
 int tsymbolcnt=0;
 int errorcnt=0;
 int cnt=0;
+int loopoutcnt=0;
 
 FILE *yyin;
 FILE *fp;
@@ -86,7 +87,7 @@ stmt_list: 	stmt_list stmt 	{$$=MakeListTree($1, $2);}
 
 stmt	: 	ID ASSGN expr STMTEND	{ $1->token = ID2; $$=MakeOPTree(ASSGN, $1, $3);}
         |   IF '(' expr ')' '{' stmt_list '}' { $$ = MakeConditionTree(IF,$3, $6, NULL);}
-        |   IF '(' expr ')' '{' stmt_list '}' ELSE '{' stmt_list '}' { $$ = MakeConditionTree(IF,$3, $6, $10);}
+        |   IF '(' expr ')' '{' stmt_list '}' ELSE '{' stmt_list '}' { $$ = MakeConditionTree(IF,$3, $6, $10); loopoutcnt++;}
         |   WHILE '(' expr ')' '{' stmt_list '}' { $$ = MakeConditionTree(WHILE, $3, $6, NULL);}
         ;
         
@@ -95,6 +96,7 @@ expr	:   expr CMP term   {$$=MakeOPTree(CMP, $1, $3);}
         |   expr ADD term	{ $$=MakeOPTree(ADD, $1, $3); }
 		|	expr SUB term	{ $$=MakeOPTree(SUB, $1, $3); }
         |   expr MUL term   { $$=MakeOPTree(MUL, $1, $3); }
+        |   PRINT '(' expr ')' {$$=MakeOPTree(PRINT, $3, NULL);}
 		|	term
 		;
 
@@ -199,6 +201,10 @@ Node * node;
         operand1 -> brother = operand2;
 
         condition -> condition = processCondition(condition);
+        
+        free(condition -> son);
+        condition -> son = NULL;
+        
         condition -> token = STARTSTMT;
         condition -> tokenval = type;
         condition -> label = operand1 -> label;
@@ -248,17 +254,24 @@ void prtcode(Node* node)
         case ASSGN:
             fprintf(fp, ":=\n");
             break;
+        case PRINT:
+        prtcode(node);
+        fprintf(fp,"OUTNUM\n");
+        if()
         case STARTSTMT:
-            //condition 만족하지 못할때 이동,
+            //condition 만족하지 못할때 이동,
             
-            fprintf(fp, "GOFALSE OUT%d\n", node->label);
             fprintf(fp, "PUSH %d\n",node->condition);
+            fprintf(fp, "GOFALSE OUT%d\n", node->label);
+            
             
             break;
         case STMTLIST:
             //DFS stmtlist 문 트리 끝날때, 만약 condition 만족하지 못하면 나갈 자리생성
             fprintf(fp, "LABEL OUT%d\n", node->label);
             break;
+            case IF:
+            fprintf(fp, "LABEL IFOUT%d\n", loopoutcnt);
         default:
             break;
 	};
@@ -335,8 +348,6 @@ void prtcode(Node* node)
                     break;
                 }
         
-        free(node -> son);
-        node -> son = NULL;
 
     
     return value;
