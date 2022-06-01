@@ -250,8 +250,9 @@ void prtcode(Node* node)
             break;
         case STARTSTMT:
             //condition 만족하지 못할때 이동,
-            fprintf(fp, "PUSH %d\n",node->condition);
+            
             fprintf(fp, "GOFALSE OUT%d\n", node->label);
+            fprintf(fp, "PUSH %d\n",node->condition);
             
             break;
         case STMTLIST:
@@ -305,7 +306,7 @@ void prtcode(Node* node)
                     break;
                     
                     case '5':
-                    if(processCondition(node>son) == processCondition(node -> brother)){
+                    if(processCondition(node->son) == processCondition(node -> brother)){
                         value = 1;
                     }
                     break;
@@ -320,8 +321,8 @@ void prtcode(Node* node)
                     break;
                 }
         
-//        free(node -> son);
-//        node -> son = NULL;
+        free(node -> son);
+        node -> son = NULL;
 
     
     return value;
