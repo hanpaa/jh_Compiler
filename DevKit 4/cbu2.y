@@ -87,7 +87,6 @@ stmt_list: 	stmt_list stmt 	{$$=MakeListTree($1, $2);}
 stmt	: 	ID ASSGN expr STMTEND	{ $1->token = ID2; $$=MakeOPTree(ASSGN, $1, $3);}
         |   IF '(' expr ')' '{' stmt_list '}' { $$ = MakeConditionTree(IF,$3, $6, NULL);}
         |   IF '(' expr ')' '{' stmt_list '}' ELSE '{' stmt_list '}' { $$ = MakeConditionTree(IF,$3, $6, $10);}
-|       expr
         ;
         
         
@@ -171,9 +170,9 @@ Node * node;
 
 	if (operand1 == NULL){
 		newnode = (Node *)malloc(sizeof (Node));
+        newnode -> label = cnt;
+        cnt++;
 		newnode->token = newnode-> tokenval = STMTLIST;
-        //stmtlist label생성
-        newnode-> label = cnt+1;
 		newnode->son = operand2;
 		newnode->brother = NULL;
 		return newnode;
@@ -194,13 +193,10 @@ Node * node;
         newNode -> tokenval = type;
         newNode -> son = condition;
         newNode -> brother = NULL;
-        
-        
         newNode -> son -> brother = operand1;
         
         operand1 -> brother = operand2;
 
-        condition -> token = condition -> tokenval = CONDITION;
         condition -> condition = processCondition(condition);
         condition -> token = STARTSTMT;
         condition -> tokenval = type;
@@ -260,8 +256,6 @@ void prtcode(Node* node)
             //DFS stmtlist 문 트리 끝날때, 만약 condition 만족하지 못하면 나갈 자리생성
             fprintf(fp, "LABEL STMTLIST OUT%d\n", node->label);
             break;
-        case IF:
-            break;
         default:
             break;
 	};
@@ -276,6 +270,7 @@ void prtcode(Node* node)
         
         int value = 1;
         free(node -> son);
+        node -> son = NULL;
 //        Node* condition = node -> condition;
 //        int value = 0;
 //        switch(condition -> token){
