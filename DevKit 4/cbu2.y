@@ -189,13 +189,13 @@ Node * node;
         Node* newNode = (Node*)malloc(sizeof(Node));
         newNode->token = type;
         newNode -> tokenval = type;
-        newNode -> condition = processCondition(condition);
         newNode -> son = condition;
         newNode -> brother = NULL;
         newNode -> label = cnt+1;
         newNode -> son -> brother = operand1;
         operand1 -> brother = operand2;
-        
+
+        condition -> condition = processCondition(condition);
         condition -> token = STARTSTMT;
         condition -> tokenval = type;
         condition -> label = cnt;
@@ -252,6 +252,7 @@ void prtcode(Node* node)
         case STARTSTMT:
             fprintf(fp,"%d\n",node->condition);
             fprintf(fp, "GOFALSE OUT%d\n", node->label);
+            break;
         case STMTLIST:
         default:
             break;
