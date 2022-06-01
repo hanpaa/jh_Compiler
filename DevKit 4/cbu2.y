@@ -18,7 +18,6 @@ typedef struct nodeType {
 	int token;
 	int tokenval;
     int label;
-    struct nodeType* condition;
 	struct nodeType *son;
 	struct nodeType *brother;
 	} Node;
@@ -66,7 +65,7 @@ int		insertsym(char *);
 }
 
 %nonassoc <cmpNum> CMP
-%token <c> ADD SUB MUL DIV ASSGN STMTEND START END ID2 IF ELSE WHILE DO
+%token <c> ADD SUB MUL DIV ASSGN STMTEND START END ID2 IF ELSE WHILE DO STARTSTMT
 %token <node> ID NUM
 %type <node> stmt_list stmt expr term
 
@@ -86,6 +85,7 @@ stmt_list: 	stmt_list stmt 	{$$=MakeListTree($1, $2);}
 
 stmt	: 	ID ASSGN expr STMTEND	{ $1->token = ID2; $$=MakeOPTree(ASSGN, $1, $3);}
 |       IF '(' expr ')' '{' stmt_list '}' { $$ = MakeConditionTree(IF,$3, $6, NULL);}
+|       expr
         ;
         
         
@@ -105,9 +105,9 @@ term	:	ID		{ /* ID node is created in lex 13*/ }
 int main(int argc, char *argv[]) 
 {
     
-//#ifdef YYDEBUG
-//  yydebug = 1;
-//#endif
+#ifdef YYDEBUG
+  yydebug = 1;
+#endif
 
 	printf("\nsample CBU compiler v2.0\n");
 	printf("2019038106 Choi Jehyeon Compiler project\n");
@@ -186,11 +186,22 @@ Node * node;
         
       
         Node* newNode = (Node*)malloc(sizeof(Node));
-        newnode->token = newnode -> tokenval = type;
+        newNode->token = type;
+        newNode -> tokenval = processCondition(condition);
         newNode -> son = condition;
+        newNode -> brother = NULL;
         newNode -> label = cnt+1;
         newNode -> son -> brother = operand1;
         operand1 -> brother = operand2;
+        
+        Node* node = operand1->son;
+        while (node->brother != NULL) node = node->brother;
+        Node* startIF = (Node*)malloc(sizeof(Node));
+        startIF -> token = STARTSTMT;
+        startIF -> tokenval = type;
+        startIF -> label = cnt;
+        node->son = startIF;
+        
         
         return newNode;
     }
@@ -238,12 +249,11 @@ void prtcode(Node* node)
             fprintf(fp, ":=\n");
             break;
         case IF:
-            if(processCondition(node->son) != 0)
-                fprintf(fp,"1\n");
-            else
-                fprintf(fp,"0\n");
-            fprintf(fp, "LABEL OUTIF%d\n", node->son->label);
+            fprintf(fp,"%d",node->son->tokenval)
+            fprintf(fp, "LABEL OUT%d\n", node->son->label);
             break;
+        case STARTSTMT:
+            fprintf(fp, "GOFALSE OUT%d\n", node->label)
         case STMTLIST:
         default:
             break;
