@@ -40,6 +40,11 @@ id		{letter}({letter}|{digit})*
 "start"		{return(START); }
 "end"		{return(END); }
 
+"{" |
+"}" |
+"(" |
+")" {return yytext[0];}
+
 ">"			{yylval.cmpNum = 1; return(CMP);}
 "<"			{yylval.cmpNum = 2; return(CMP);}
 ">="		{yylval.cmpNum = 3; return(CMP);}
