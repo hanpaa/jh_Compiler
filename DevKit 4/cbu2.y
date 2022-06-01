@@ -196,14 +196,9 @@ Node * node;
         newNode -> son -> brother = operand1;
         operand1 -> brother = operand2;
         
-        Node* node = operand1->son;
-        
-        while (node->brother != NULL) node = node->brother;
-        Node* startIF = (Node*)malloc(sizeof(Node));
-        startIF -> token = STARTSTMT;
-        startIF -> tokenval = type;
-        startIF -> label = cnt;
-        node->son = startIF;
+        condition -> token = STARTSTMT;
+        condition -> tokenval = type;
+        condition -> label = cnt;
         
         
         return newNode;
@@ -252,10 +247,10 @@ void prtcode(Node* node)
             fprintf(fp, ":=\n");
             break;
         case IF:
-            fprintf(fp,"%d\n",node->son->condition);
-            fprintf(fp, "LABEL OUT%d\n", node->son->label);
+            fprintf(fp, "LABEL OUT%d\n", node->label);
             break;
         case STARTSTMT:
+            fprintf(fp,"%d\n",node->condition);
             fprintf(fp, "GOFALSE OUT%d\n", node->label);
         case STMTLIST:
         default:
