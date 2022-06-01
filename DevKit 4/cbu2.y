@@ -22,8 +22,6 @@ typedef struct nodeType {
     
     
 
-#define YYSTYPE Node*
-
 	
 int tsymbolcnt=0;
 int errorcnt=0;
