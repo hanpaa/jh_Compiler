@@ -85,8 +85,7 @@ stmt_list: 	stmt_list stmt 	{$$=MakeListTree($1, $2);}
 		;
 
 stmt	: 	ID ASSGN expr STMTEND	{ $1->token = ID2; $$=MakeOPTree(ASSGN, $1, $3);}
-|   IF '(' expr ')' '{' stmt_list '}' { $$ = MakeConditionTree(IF,$3, $6, NULL);}
-        |   IF '(' expr ')' '{' stmt_list '}' ELSE '{' stmt_list '}'{ $$ = MakeConditionTree(IF, $3, $6, $10);}
+|       IF '(' expr ')' '{' stmt_list '}' { $$ = MakeConditionTree(IF,$3, $6, NULL);}
         ;
         
         
@@ -185,12 +184,12 @@ Node * node;
     
     Node* MakeConditionTree(int type, Node* condition, Node* operand1, Node* operand2){
         
+      
         Node* newNode = (Node*)malloc(sizeof(Node));
-        newNode -> token = type;
-        newNode -> condition;
-        newNode -> son = operand1;
+        newnode->token = newnode -> tokenval = type;
+        newNode -> son = condition;
         newNode -> label = cnt+1;
-        newNode -> brother = NULL;
+        newNode -> son -> brother = operand1;
         operand1 -> brother = operand2;
         
         return newNode;
@@ -243,7 +242,7 @@ void prtcode(Node* node)
                 fprintf(fp,"1\n");
             else
                 fprintf(fp,"0\n");
-            fprintf(fp, "GOFALSE OUTIF%d\n", node->label);
+            fprintf(fp, "LABEL OUTIF%d\n", node->son->label);
             break;
         case STMTLIST:
         default:
