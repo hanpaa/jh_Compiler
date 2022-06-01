@@ -249,8 +249,6 @@ void prtcode(Node* node)
         case ASSGN:
             fprintf(fp, ":=\n");
             break;
-        case IF:
-            break;
         case STARTSTMT:
             //condition 만족하지 못할때 이동,
             fprintf(fp,"%d\n",node->condition);
@@ -260,7 +258,8 @@ void prtcode(Node* node)
             //DFS stmtlist 문 트리 끝날때, 만약 condition 만족하지 못하면 나갈 자리생성
             fprintf(fp, "LABEL STMTLIST OUT%d\n", node->label);
             break;
-            
+        case IF:
+            break;
         default:
             break;
 	};
