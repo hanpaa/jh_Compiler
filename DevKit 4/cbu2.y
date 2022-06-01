@@ -244,6 +244,7 @@ void prtcode(Node* node)
             else
                 fprintf(fp,"0");
             fprintf(fp, "GOFALSE OUTIF%d\n", node->son->label);
+            break;
 	case STMTLIST:
 	default:
 		break;
@@ -269,7 +270,8 @@ void prtcode(Node* node)
             }
             break;
                 
-            
+            default:
+            break;
         }
     
     return value;
