@@ -18,6 +18,7 @@ typedef struct nodeType {
 	int token;
 	int tokenval;
     int label;
+    int outlabel;
     int condition;
 	struct nodeType *son;
 	struct nodeType *brother;
@@ -67,7 +68,7 @@ int		insertsym(char *);
 }
 
 %nonassoc <cmpNum> CMP
-%token <c> ADD SUB MUL DIV ASSGN STMTEND START END ID2 IF ELSE WHILE DO STARTSTMT CONDITION PRINTNUM PRINTCHAR
+%token <c> ADD SUB MUL DIV ASSGN STMTEND START END ID2 IF ELSE WHILE DO CONDITION PRINTNUM PRINTCHAR ELSESTMT MAINSTMT ELSESTMTLIST MAINSTMTLIST
 %token <node> ID NUM
 %type <node> stmt_list stmt expr term
 
@@ -88,9 +89,9 @@ stmt_list: 	stmt_list stmt 	{$$=MakeListTree($1, $2);}
 stmt	: 	ID ASSGN expr STMTEND	{ $1->token = ID2; $$=MakeOPTree(ASSGN, $1, $3);}
 |   PRINTNUM '(' expr ')' STMTEND {$$=MakeOPTree(PRINTNUM, $3, NULL);}
 |   PRINTCHAR  '(' expr ')' STMTEND {$$=MakeOPTree(PRINTCHAR, $3, NULL);}
-        |   IF '(' expr ')' '{' stmt_list '}' { $$ = MakeConditionTree(IF,$3, $6, NULL);}
-        |   IF '(' expr ')' '{' stmt_list '}' ELSE '{' stmt_list '}' { $$ = MakeConditionTree(IF,$3, $6, $10); loopoutcnt++;}
-        |   WHILE '(' expr ')' '{' stmt_list '}' { $$ = MakeConditionTree(WHILE, $3, $6, NULL);}
+        |   IF '(' expr ')' '{' stmt_list '}' { $$ = MakeIFConditionTree(IF,$3, $6, NULL);}
+        |   IF '(' expr ')' '{' stmt_list '}' ELSE '{' stmt_list '}' { $$ = MakeIFConditionTree(IF,$3, $6, $10);}
+        |   WHILE '(' expr ')' '{' stmt_list '}' { $$ = MakeIFConditionTree(WHILE, $3, $6, NULL);}
         ;
         
         
@@ -172,6 +173,7 @@ Node * MakeListTree(Node* operand1, Node* operand2)
 Node * newnode;
 Node * node;
 
+// 처음만들면 son에다가 붙임.
 	if (operand1 == NULL){
 		newnode = (Node *)malloc(sizeof (Node));
         newnode -> label = cnt;
@@ -181,17 +183,30 @@ Node * node;
 		newnode->brother = NULL;
 		return newnode;
 		}
-	else {
+	else { //그담부턴 son의 부라더에
 		node = operand1->son;
 		while (node->brother != NULL) node = node->brother;
+        operand2 -> label = operand1 -> label;
 		node->brother = operand2;
 		return operand1;
 		}
 }
     
-    Node* MakeConditionTree(int type, Node* condition, Node* operand1, Node* operand2){
+    Node* MakeIFConditionTree(int type, Node* condition, Node* operand1, Node* operand2){
         
       
+      // LOOP 생성을 위해 Token표시
+        operand1 -> token = MAINSTMTLIST;
+        operand1 -> son -> token = MAINSTMT;
+        operand1 -> outlabel = loopoutcnt;
+        
+        operant2 -> token = ELSESTMTLIST;
+        operand2 -> son -> token = ELSESTMT;
+        operand2 -> outlabel = loopoutcnt;
+        
+        //if, while문
+        
+        
         Node* newNode = (Node*)malloc(sizeof(Node));
         newNode->token = type;
         newNode -> tokenval = type;
@@ -199,14 +214,20 @@ Node * node;
         newNode -> brother = NULL;
         newNode -> son -> brother = operand1;
         
+        
+        loopoutcnt++;
+        // stmtlist brother에 붙이기
         operand1 -> brother = operand2;
 
+        
+        //condition 노드 설정 condition 연산처리, 비교연산은 stacksim에서 안되는것같음
+        //GOMINUS 등 이용?
         condition -> condition = processCondition(condition);
         
         free(condition -> son);
         condition -> son = NULL;
         
-        condition -> token = STARTSTMT;
+        condition -> token = CONDITION;
         condition -> tokenval = type;
         condition -> label = operand1 -> label;
         
@@ -225,7 +246,6 @@ void DFSTree(Node * n)
 	DFSTree(n->son);
 	prtcode(n);
 	DFSTree(n->brother);
-	
 }
 
 void prtcode(Node* node)
@@ -268,23 +288,26 @@ void prtcode(Node* node)
             while(symtbl[node->tokenval][i] == '\0')
                 fprintf("PUSH %d\n", symtbl[node->tokenval][i]);
                 fprintf(fp,"OUTCH\n");
-                i++
+                i++;
         }
         break;
-        case STARTSTMT:
+        case CONDITION:
             //condition 만족하지 못할때 이동,
-            
+            //컨디션 삽입
             fprintf(fp, "PUSH %d\n",node->condition);
+            //prtcode(node->condition);
             fprintf(fp, "GOFALSE OUT%d\n", node->label);
-            
-            
+        break;
+        case MAINSTMT:
+            fprintf(fp, "LOOP OUT%d\n", node->label);
             break;
-        case STMTLIST:
-            //DFS stmtlist 문 트리 끝날때, 만약 condition 만족하지 못하면 나갈 자리생성
-            fprintf(fp, "LABEL OUT%d\n", node->label);
-            break;
+        case MAINSTMTLIST:
+        //DFS stmtlist 문 트리 끝날때, 만약 condition 만족하지 못하면 나갈 자리생성
+        fprintf(fp, "LABEL OUT%d\n", node->label);
+        fprintf(fp, "LOOP IFOUT%d\n", node->outlabel);
+        break;
             case IF:
-            fprintf(fp, "LABEL IFOUT%d\n", loopoutcnt);
+            fprintf(fp, "LABEL IFOUT%d\n", node->outlabel);
         default:
             break;
 	};
