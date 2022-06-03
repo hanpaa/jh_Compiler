@@ -43,7 +43,7 @@ void DFSTree(Node*);
 Node* MakeOPTree(int, Node*, Node*);
 Node* MakeNode(int, int);
 Node* MakeListTree(Node*, Node*);
-Node* MakeConditionTree(int, Node*, Node*, Node*);
+Node* MakeIFConditionTree(int, Node*, Node*, Node*);
 
 void codegen(Node* );
 void prtcode(Node* );
@@ -200,7 +200,7 @@ Node * node;
         operand1 -> son -> token = MAINSTMT;
         operand1 -> outlabel = loopoutcnt;
         
-        operant2 -> token = ELSESTMTLIST;
+        operand2 -> token = ELSESTMTLIST;
         operand2 -> son -> token = ELSESTMT;
         operand2 -> outlabel = loopoutcnt;
         
@@ -310,7 +310,7 @@ void prtcode(Node* node)
             fprintf(fp, "LABEL IFOUT%d\n", node->outlabel);
         default:
             break;
-	};
+	}
 }
 
     /**
