@@ -47,12 +47,12 @@ id		{letter}({letter}|{digit})*
 "(" |
 ")" {return yytext[0];}
 
-">"			{yylval.cmpNum = 1; return(CMP);}
-"<"			{yylval.cmpNum = 2; return(CMP);}
-">="		{yylval.cmpNum = 3; return(CMP);}
-"<="		{yylval.cmpNum = 4; return(CMP);}
-"=="		{yylval.cmpNum = 5; return(CMP);}
-"!="		{yylval.cmpNum = 6; return(CMP);}
+">"			{return(LT);}
+"<"			{return(RT);}
+">="		{return(LTE);}
+"<="		{return(RTE);}
+"=="		{return(EE);}
+"!="		{return(NE);}
 
 
 {id}	{strcpy(s, yytext); temp=insertsym(s); yylval.node=MakeNode(ID, temp); return(ID);}

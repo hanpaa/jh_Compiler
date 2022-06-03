@@ -19,7 +19,6 @@ typedef struct nodeType {
 	int tokenval;
 	int label;
 	int outlabel;
-	int inlabel;
 	int condition;
 	struct nodeType *son;
 	struct nodeType *brother;
@@ -30,8 +29,8 @@ typedef struct nodeType {
 	
 int tsymbolcnt=0;
 int errorcnt=0;
-int cnt=0;
-int loopoutcnt=0;
+int stmtLabel = 0;
+int conditionLabel =0;
 
 FILE *yyin;
 FILE *fp;
@@ -70,8 +69,8 @@ int		insertsym(char *);
 }
 
 %nonassoc <cmpNum> CMP
-%token <c> ADD SUB MUL DIV ASSGN STMTEND START END ID2 IF ELSE WHILE DO WCONDITION CONDITION PRINTNUM PRINTCHAR 
-%token <node> ID NUM ELSESTMTLIST IFMAINSTMTLIST WMAINSTMTLIST LOOPNODE
+%token <c> ADD SUB MUL DIV ASSGN STMTEND START END ID2 IF ELSE WHILE DO WCONDITION CONDITION PRINTNUM PRINTCHAR LT RT LTE RTE EE NE
+%token <node> ID NUM ELSESTMTLIST IFMAINSTMTLIST WMAINSTMTLIST LOOPNODE GOFALSENODE GOTRUENODE
 %type <node> stmt_list stmt expr term
 
 
@@ -90,17 +89,23 @@ stmt_list: 	stmt_list stmt 	{$$=MakeListTree($1, $2);}
 
 stmt	: 	ID ASSGN expr STMTEND	{ $1->token = ID2; $$=MakeOPTree(ASSGN, $1, $3);}
 		|   PRINTNUM '(' expr ')' STMTEND {$$=MakeOPTree(PRINTNUM, $3, NULL);}
-		|   PRINTCHAR  '(' expr ')' STMTEND {$$=MakeOPTree(PRINTCHAR, $3, NULL);}
+		//|   PRINTCHAR  '(' expr ')' STMTEND {$$=MakeOPTree(PRINTCHAR, $3, NULL);}
 		|   IF '(' expr ')' '{' stmt_list '}' { $$ = MakeIFConditionTree(IF,$3, $6, NULL);}
 		|   IF '(' expr ')' '{' stmt_list '}' ELSE '{' stmt_list '}' { $$ = MakeIFConditionTree(IF,$3, $6, $10);}
 		|   WHILE '(' expr ')' '{' stmt_list '}' { $$ = MakeWHILEConditionTree(WHILE, $3, $6);}
 		;
 		
 		
-expr	:   expr CMP term   {$$=MakeOPTree(CMP, $1, $3);}
-		|   expr ADD term	{ $$=MakeOPTree(ADD, $1, $3); }
+expr	:   expr ADD term	{ $$=MakeOPTree(ADD, $1, $3); }
 		|	expr SUB term	{ $$=MakeOPTree(SUB, $1, $3); }
 		|   expr MUL term   { $$=MakeOPTree(MUL, $1, $3); }
+		|   expr DIV term   { $$=MakeOPTree(DIV, $1, $3); }
+		|   expr LT term   { $$=MakeOPTree(LT, $1, $3); }
+		|   expr RT term   { $$=MakeOPTree(RT, $1, $3); }
+		|   expr LTE term   { $$=MakeOPTree(LTE, $1, $3); }
+		|   expr RTE term   { $$=MakeOPTree(RTE, $1, $3); }
+		|   expr EE term   { $$=MakeOPTree(EE, $1, $3); }
+		|   expr NE term   { $$=MakeOPTree(NE, $1, $3); }
 		|	term
 		;
 
@@ -178,9 +183,6 @@ Node * node;
 // 처음만들면 son에다가 붙임.
 	if (operand1 == NULL){
 		newnode = (Node *)malloc(sizeof (Node));
-		newnode -> label = cnt;
-		operand2 -> label = cnt;
-		cnt++;
 		newnode->token = newnode-> tokenval = STMTLIST;
 		newnode->son = operand2;
 		newnode->brother = NULL;
@@ -189,7 +191,6 @@ Node * node;
 	else { //그담부턴 son의 부라더에
 		node = operand1->son;
 		while (node->brother != NULL) node = node->brother;
-		operand2 -> outlabel = operand1 -> label;
 		node->brother = operand2;
 		return operand1;
 		}
@@ -197,58 +198,66 @@ Node * node;
 	
 	Node* MakeIFConditionTree(int type, Node* condition, Node* operand1, Node* operand2){
 		
-	  
+		
 	  // LOOP 생성을 위해 Token표시
 		operand1 -> token = IFMAINSTMTLIST;
-		operand1 -> outlabel = loopoutcnt;
 		if(operand2 != NULL){
 		operand2 -> token = ELSESTMTLIST;
-		operand2 -> outlabel = loopoutcnt;
 		}
 		
 		
 		//if, while문 Ast연결
 		
+		//condition 노드 설정
+		//condition -> token = IFCONDITION;
+		//condition -> tokenval = IFCONDITION;
+		
 		
 		Node* newNode = (Node*)malloc(sizeof(Node));
 		newNode->token = type;
 		newNode -> tokenval = type;
 		newNode -> brother = NULL;
-		operand1 -> brother = operand2;
-		newNode -> outlabel = loopoutcnt;
-
 		
 		
-		// stmtlist brother에 붙이기
 		
-
-		
-		//condition 노드 설정 condition 연산처리, 비교연산은 stacksim에서 안되는것같음
+		//go false 노드 설정 condition 실패시 처리, 비교연산은 stacksim에서 안되는것같음
 		//GOMINUS 등 이용?
-		//condition -> condition = processCondition(condition);
 		
-		//free(condition -> son);
-		//condition -> son = NULL;
+		Node* goFalseNode = (Node*)malloc(sizeof(Node));
+		goFalseNode -> son = NULL;
+		goFalseNode -> token = goFalseNode -> tokenval =  GOFALSENODE;
 		
 		
-		condition -> token = CONDITION;
-		condition -> tokenval = CONDITION;
-		condition -> label = operand1 -> label;
-		condition -> brother = operand1;
-		condition -> outlabel = loopoutcnt;
+		// condition 조건 맞을시 label작업
+		newNode -> outlabel = conditionLabel;
+		operand1 -> outlabel = conditionLabel;
+		operand2 -> outlabel = conditionLabel;
+		
+		// 조건 안맞는경우 label작업 
+		stmtLabel = conditionLabel+1;
+		
+		condition -> outlabel = stmtLabel;
+		// 얘 입장에선 들어옴
+		goFalseNode -> label = stmtLabel;
+		
+		
+		
+		
+		conditionLabel++;
+		
+		
 		newNode -> son = condition;
+		condition -> brother = operand1;
+		operand1 -> brother = goFalseNode;
+		goFalseNode -> brother = operand2;
 		
 		
-		
-		loopoutcnt++;
+		conditionLabel++;
 		return newNode;
 	}
 	
 	Node* MakeWHILEConditionTree(int type, Node* condition, Node* operand1){
 		
-	
-		
-	
 		
 		//if, while문 Ast연결
 		
@@ -257,28 +266,50 @@ Node * node;
 		newNode->token = type;
 		newNode -> tokenval = type;
 		newNode -> brother = NULL;
-		newNode -> outlabel = loopoutcnt;
 		
-		operand1 -> outlabel = loopoutcnt;
 		operand1 -> token = WMAINSTMTLIST;
 		
 		//condition 노드 설정
-		condition -> token = WCONDITION;
-		condition -> tokenval = WCONDITION;
-		condition -> label = operand1 -> label;
+		//condition -> token = WCONDITION;
+		//condition -> tokenval = WCONDITION;
 		
 		
 		//LABEL 삽입을 위한 노드 생성
 		Node* loopNode = (Node*)malloc(sizeof(Node));
 		loopNode -> token = loopNode -> tokenval = LOOPNODE;
 		loopNode -> son = NULL;
-		loopNode -> outlabel =  loopoutcnt;
-		loopNode -> brother = condition;
-		condition -> brother = operand1;
-		condition -> outlabel = loopoutcnt;
+		
+		
+		//go true 노드 설정 condition TRUE시 WHILE 끝내기, 비교연산은 stacksim에서 안되는것같음
+		//GOMINUS 등 이용?
+		
+		Node* goTrueNode = (Node*)malloc(sizeof(Node));
+		goTrueNode -> son = NULL;
+		goTrueNode -> token = goTrueNode -> tokenval =  GOTRUENODE;
+		
+		
+		
+		// inlabel 작업
+		loopNode -> label = conditionLabel;
+		operand1 -> label = conditionLabel;
+		
+		stmtLabel = conditionLabel+1;
+		// outlabel 작업
+		
+		condition -> outlabel =  stmtLabel;
+		newNode -> outlabel = stmtLabel;
+		
+		conditionLabel++;
+
+		//노드순서설정
 		newNode -> son = loopNode;
+		loopNode -> brother = condition;
+		condition -> brother = goTrueNode;
+		goTrueNode -> brother = operand1;
 		
 		
+		
+		return newNode;
 	}
 
 void codegen(Node * root)
@@ -337,120 +368,87 @@ void prtcode(Node* node)
 				i++;
 		}
 		break;
+		/*
 		case CONDITION:
 			//condition 만족하지 못할때 이동,
 			//컨디션 삽입
 			fprintf(fp, "PUSH %d\n",node->condition);
 			//prtcode(node->condition);
-			fprintf(fp, "GOFALSE OUT%d\n", node->label);
-		break;
+			fprintf(fp, "GOFALSE OUT%d\n", node->outlabel);
+			break;
 		
 		case WCONDITION:
 		
 		fprintf(fp, "GOTRUE WHILEOUT%d\n", node->label);
 		
-		break;
-		
+			break;
+		*/
 		case IFMAINSTMTLIST:
 		//DFS stmtlist 문 트리 끝날때, 만약 condition 만족하지 못하면 나갈 자리생성
-			fprintf(fp, "GOTO IFOUT%d\n", node->outlabel);		
-			fprintf(fp, "LABEL OUT%d\n", node->label);
+			fprintf(fp, "GOTO OUT%d\n", node -> outlabel);		
+			fprintf(fp, "LABEL OUT%d\n", node -> outlabel);
 		
 			break;
 		case WMAINSTMTLIST:
-			fprintf(fp, "GOTO WHILEIN%d\n", node->outlabel);
-		break;
-			//AST 에서 IF 타입인 노드가 stmtlist 보다 위에 있으므로 나중에 실행  => 맨 마지막에 입력됨
-			case IF:
-			fprintf(fp, "LABEL IFOUT%d\n", node->outlabel);
+			fprintf(fp, "GOTO IN%d\n", node ->label);
 			break;
-			case WHILE:
-			fprintf(fp, "LABEL WHILEOUT%d\n", node->outlabel);
+		
+		case ELSESTMTLIST:
+			fprintf(fp, "GOTO OUT%d\n", node -> outlabel);
+		break;
+		
+			//AST 에서 IF 타입인 노드가 stmtlist 보다 위에 있으므로 나중에 실행  => 맨 마지막에 입력됨 전체 나감
+		case IF:
+			fprintf(fp, "LABEL OUT%d\n", node -> outlabel);
+		break;
+		case WHILE:
+			fprintf(fp, "LABEL OUT%d\n", node -> outlabel);
 			break;
 			
-			case LOOPNODE:
-			fprintf(fp, "LABEL WHILEIN%d\n", node->outlabel);
+		case LOOPNODE:
+			fprintf(fp, "LABEL IN%d\n", node -> label);
 			 break;
+			 
+		case GOFALSENODE:
+			fprintf(fp, "LABEL OUT%d\n", node -> label);
+			break;
+		case LT:
+			fprintf(fp, "-\n");
+			fprintf(fp, "GOMINUS OUT%d\n", node -> outlabel);
+			break;
+		case RT:
+			fprintf(fp, "-\n");
+			fprintf(fp, "GOPLUS OUT%d\n", node -> outlabel);
+			break;
+		case LTE:
+			fprintf(fp, "-\n");
+			fprintf(fp, "GOMINUS OUT%d\n", node -> outlabel);
+			prtcode(node -> son);
+			prtcode(node -> brother);
+			fprintf(fp, "-\n");
+			fprintf(fp, "GOTRUE OUT%d\n", node -> outlabel);
+			break;
+		case RTE:
+			fprintf(fp, "-\n");
+			fprintf(fp, "GOPLUS OUT%d\n", node -> outlabel);
+			prtcode(node -> son);
+			prtcode(node -> brother);
+			fprintf(fp, "-\n");
+			fprintf(fp, "GOTRUE OUT%d\n", node -> outlabel);
+			
+			break;		
+		case EE:
+			fprintf(fp, "-\n");
+			fprintf(fp, "GOTRUE OUT%d\n", node -> outlabel);
+			break;
+		case NE:
+			fprintf(fp, "-\n");
+			fprintf(fp, "GOFALSE OUT%d\n", node -> outlabel);
+			break;
 		default:
 			break;
 	}
 }
-
-	/**
-		condition check
-				TRUE = return 1
-				FALSE = return 0
-	 */
-	int processCondition(Node* node){
-		
-		
-		
-				int value = 0;
-				switch(node -> token){
-					case ID:
-					value = node -> brother -> tokenval;
-					break;
-					case NUM:
-					value = node -> tokenval;
-					break;
-					case '1':
-					//
-					if(processCondition(node -> son) > processCondition(node -> brother)){
-						value = 1;
-					}
-					break;
-					case '2':
-					if(processCondition(node ->son) < processCondition(node -> brother)){
-						value = 1;
-					}
-					break;
-					
-					case '3':
-					if(processCondition(node->son) >= processCondition(node -> brother)){
-						value = 1;
-					}
-					break;
-		
-					case '4':
-					if(processCondition(node->son) <= processCondition(node -> brother)){
-						value = 1;
-					}
-					break;
-					
-					case '5':
-					if(processCondition(node->son) == processCondition(node -> brother)){
-						value = 1;
-					}
-					break;
-					
-					case '6':
-					if(processCondition(node->son) != processCondition(node -> brother)){
-						value = 1;
-					}
-					break;
-					
-					case ADD:
-					value = processCondition(node->son) + processCondition(node -> brother);
-					break;
-					
-					case SUB:
-					value = processCondition(node->son) - processCondition(node -> brother);
-					break;
-					
-					case DIV:
-					value = processCondition(node->son) / processCondition(node -> brother);
-					break;
-					case MUL:
-					value = processCondition(node->son) * processCondition(node -> brother);
-					break;
-					default:
-					break;
-				}
-		
-
-	
-	return value;
-	}
 
 
 /*
