@@ -214,6 +214,7 @@ Node * node;
 		newNode -> son = condition;
 		newNode -> brother = NULL;
 		newNode -> son -> brother = operand1;
+		newNode -> outlabel = loopoutcnt;
 		
 		
 		loopoutcnt++;
