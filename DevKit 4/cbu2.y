@@ -177,6 +177,7 @@ Node * node;
 	if (operand1 == NULL){
 		newnode = (Node *)malloc(sizeof (Node));
 		newnode -> label = cnt;
+		operand2 -> label = cnt;
 		cnt++;
 		newnode->token = newnode-> tokenval = STMTLIST;
 		newnode->son = operand2;
@@ -186,7 +187,6 @@ Node * node;
 	else { //그담부턴 son의 부라더에
 		node = operand1->son;
 		while (node->brother != NULL) node = node->brother;
-		if(operan2 -> label == NULL) yyerror();
 		operand2 -> label = operand1 -> label;
 		node->brother = operand2;
 		return operand1;
@@ -286,7 +286,6 @@ void prtcode(Node* node)
 			fprintf(fp,"OUTNUM\n");
 		}else{
 			int i = 0;
-			if(symtbl[node->tokenval][i] == NULL) yyerrok;
 			while(symtbl[node->tokenval][i] == '\0')
 				fprintf("PUSH %d\n", symtbl[node->tokenval][i]);
 				fprintf(fp,"OUTCH\n");
@@ -305,8 +304,9 @@ void prtcode(Node* node)
 			break;
 		case MAINSTMTLIST:
 		//DFS stmtlist 문 트리 끝날때, 만약 condition 만족하지 못하면 나갈 자리생성
-		fprintf(fp, "LABEL OUT%d\n", node->label);
-		fprintf(fp, "LOOP IFOUT%d\n", node->outlabel);
+fprintf(fp, "LOOP IFOUT%d\n", node->outlabel);		
+fprintf(fp, "LABEL OUT%d\n", node->label);
+		
 		break;
 			case IF:
 			fprintf(fp, "LABEL IFOUT%d\n", node->outlabel);
