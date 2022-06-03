@@ -266,7 +266,7 @@ void prtcode(Node* node)
         }else{
             int i = 0;
             while(symtbl[node->tokenval][i] == '\0')
-                fprintf("PUSH %d\n", symtbl[node->tokenval]);
+                fprintf("PUSH %d\n", symtbl[node->tokenval][i]);
                 fprintf(fp,"OUTCH\n");
                 i++
         }
