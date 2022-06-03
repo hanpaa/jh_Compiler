@@ -19,6 +19,7 @@ typedef struct nodeType {
 	int tokenval;
 	int label;
 	int outlabel;
+	int inlabel;
 	int condition;
 	struct nodeType *son;
 	struct nodeType *brother;
@@ -44,6 +45,7 @@ Node* MakeOPTree(int, Node*, Node*);
 Node* MakeNode(int, int);
 Node* MakeListTree(Node*, Node*);
 Node* MakeIFConditionTree(int, Node*, Node*, Node*);
+Node* MakeWHILEConditionTree(int, Node*, Node*);
 
 void codegen(Node* );
 void prtcode(Node* );
@@ -68,8 +70,8 @@ int		insertsym(char *);
 }
 
 %nonassoc <cmpNum> CMP
-%token <c> ADD SUB MUL DIV ASSGN STMTEND START END ID2 IF ELSE WHILE DO CONDITION PRINTNUM PRINTCHAR ELSESTMT MAINSTMT ELSESTMTLIST MAINSTMTLIST
-%token <node> ID NUM
+%token <c> ADD SUB MUL DIV ASSGN STMTEND START END ID2 IF ELSE WHILE DO WCONDITION CONDITION PRINTNUM PRINTCHAR 
+%token <node> ID NUM ELSESTMTLIST IFMAINSTMTLIST WMAINSTMTLIST LOOPNODE
 %type <node> stmt_list stmt expr term
 
 
@@ -91,7 +93,7 @@ stmt	: 	ID ASSGN expr STMTEND	{ $1->token = ID2; $$=MakeOPTree(ASSGN, $1, $3);}
 		|   PRINTCHAR  '(' expr ')' STMTEND {$$=MakeOPTree(PRINTCHAR, $3, NULL);}
 		|   IF '(' expr ')' '{' stmt_list '}' { $$ = MakeIFConditionTree(IF,$3, $6, NULL);}
 		|   IF '(' expr ')' '{' stmt_list '}' ELSE '{' stmt_list '}' { $$ = MakeIFConditionTree(IF,$3, $6, $10);}
-		|   WHILE '(' expr ')' '{' stmt_list '}' { $$ = MakeIFConditionTree(WHILE, $3, $6, NULL);}
+		|   WHILE '(' expr ')' '{' stmt_list '}' { $$ = MakeWHILEConditionTree(WHILE, $3, $6);}
 		;
 		
 		
@@ -197,29 +199,26 @@ Node * node;
 		
 	  
 	  // LOOP 생성을 위해 Token표시
-		operand1 -> token = MAINSTMTLIST;
+		operand1 -> token = IFMAINSTMTLIST;
 		operand1 -> outlabel = loopoutcnt;
-		
 		if(operand2 != NULL){
 		operand2 -> token = ELSESTMTLIST;
 		operand2 -> outlabel = loopoutcnt;
 		}
 		
 		
-		//if, while문
+		//if, while문 Ast연결
 		
 		
 		Node* newNode = (Node*)malloc(sizeof(Node));
 		newNode->token = type;
 		newNode -> tokenval = type;
-		newNode -> son = condition;
 		newNode -> brother = NULL;
 		operand1 -> brother = operand2;
-		condition -> brother = operand1;
 		newNode -> outlabel = loopoutcnt;
+
 		
 		
-		loopoutcnt++;
 		// stmtlist brother에 붙이기
 		
 
@@ -231,13 +230,56 @@ Node * node;
 		//free(condition -> son);
 		//condition -> son = NULL;
 		
+		
 		condition -> token = CONDITION;
 		condition -> tokenval = CONDITION;
 		condition -> label = operand1 -> label;
+		condition -> brother = operand1;
+		condition -> outlabel = loopoutcnt;
+		newNode -> son = condition;
 		
+		
+		
+		loopoutcnt++;
 		return newNode;
 	}
 	
+	Node* MakeWHILEConditionTree(int type, Node* condition, Node* operand1){
+		
+	
+		
+	
+		
+		//if, while문 Ast연결
+		
+		
+		Node* newNode = (Node*)malloc(sizeof(Node));
+		newNode->token = type;
+		newNode -> tokenval = type;
+		newNode -> brother = NULL;
+		newNode -> outlabel = loopoutcnt;
+		
+		operand1 -> outlabel = loopoutcnt;
+		operand1 -> token = WMAINSTMTLIST;
+		
+		//condition 노드 설정
+		condition -> token = WCONDITION;
+		condition -> tokenval = WCONDITION;
+		condition -> label = operand1 -> label;
+		
+		
+		//LABEL 삽입을 위한 노드 생성
+		Node* loopNode = (Node*)malloc(sizeof(Node));
+		loopNode -> token = loopNode -> tokenval = LOOPNODE;
+		loopNode -> son = NULL;
+		loopNode -> outlabel =  loopoutcnt;
+		loopNode -> brother = condition;
+		condition -> brother = operand1;
+		condition -> outlabel = loopoutcnt;
+		newNode -> son = loopNode;
+		
+		
+	}
 
 void codegen(Node * root)
 {
@@ -302,15 +344,33 @@ void prtcode(Node* node)
 			//prtcode(node->condition);
 			fprintf(fp, "GOFALSE OUT%d\n", node->label);
 		break;
-		case MAINSTMTLIST:
+		
+		case WCONDITION:
+		
+		fprintf(fp, "GOTRUE WHILEOUT%d\n", node->label);
+		
+		break;
+		
+		case IFMAINSTMTLIST:
 		//DFS stmtlist 문 트리 끝날때, 만약 condition 만족하지 못하면 나갈 자리생성
-			fprintf(fp, "LOOP IFOUT%d\n", node->outlabel);		
+			fprintf(fp, "GOTO IFOUT%d\n", node->outlabel);		
 			fprintf(fp, "LABEL OUT%d\n", node->label);
 		
 			break;
+		case WMAINSTMTLIST:
+			fprintf(fp, "GOTO WHILEIN%d\n", node->outlabel);
+		break;
+			//AST 에서 IF 타입인 노드가 stmtlist 보다 위에 있으므로 나중에 실행  => 맨 마지막에 입력됨
 			case IF:
 			fprintf(fp, "LABEL IFOUT%d\n", node->outlabel);
 			break;
+			case WHILE:
+			fprintf(fp, "LABEL WHILEOUT%d\n", node->outlabel);
+			break;
+			
+			case LOOPNODE:
+			fprintf(fp, "LABEL WHILEIN%d\n", node->outlabel);
+			 break;
 		default:
 			break;
 	}
