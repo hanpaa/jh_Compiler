@@ -39,7 +39,8 @@ id		{letter}({letter}|{digit})*
 "do"		{return(DO);}
 "start"		{return(START); }
 "end"		{return(END); }
-"print"		{return(PRINT);}
+"printn"		{return(PRINTNUM);}
+"printc"		{return(PRINTCHAR);}
 
 "{" |
 "}" |
