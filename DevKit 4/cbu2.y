@@ -186,6 +186,7 @@ Node * node;
 	else { //그담부턴 son의 부라더에
 		node = operand1->son;
 		while (node->brother != NULL) node = node->brother;
+		if(operan2 -> label == NULL) yyerror();
 		operand2 -> label = operand1 -> label;
 		node->brother = operand2;
 		return operand1;
@@ -285,6 +286,7 @@ void prtcode(Node* node)
 			fprintf(fp,"OUTNUM\n");
 		}else{
 			int i = 0;
+			if(symtbl[node->tokenval][i] == NULL) yyerrok;
 			while(symtbl[node->tokenval][i] == '\0')
 				fprintf("PUSH %d\n", symtbl[node->tokenval][i]);
 				fprintf(fp,"OUTCH\n");
@@ -308,6 +310,7 @@ void prtcode(Node* node)
 		break;
 			case IF:
 			fprintf(fp, "LABEL IFOUT%d\n", node->outlabel);
+			break;
 		default:
 			break;
 	}
