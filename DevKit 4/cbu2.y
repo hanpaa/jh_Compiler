@@ -257,14 +257,18 @@ void prtcode(Node* node)
             break;
         case PRINTNUM:
         prtcode(node->son);
-        fprintf(fp,"OUTNUM");
+        fprintf(fp,"OUTNUM\n");
         break;
         case PRINTCHAR:
         if(node -> son -> token == NUM){
             prtcode(node->son);
-            fprintf(fp,"OUTNUM");
+            fprintf(fp,"OUTNUM\n");
         }else{
-            fprintf("%d", symtbl[node->tokenval])
+            int i = 0;
+            while(symtbl[node->tokenval][i] == '\0')
+                fprintf("PUSH %d\n", symtbl[node->tokenval]);
+                fprintf(fp,"OUTCH\n");
+                i++
         }
         break;
         case STARTSTMT:
