@@ -68,9 +68,9 @@ int		insertsym(char *);
 	char c;
 }
 
-%nonassoc <cmpNum> CMP
-%token <c> ADD SUB MUL DIV ASSGN STMTEND START END ID2 IF ELSE WHILE DO PRINTNUM PRINTLN LT RT LTE RTE EE NE
-%token <node> ID NUM ELSESTMTLIST IFMAINSTMTLIST WMAINSTMTLIST LOOPNODE GOFALSENODE GOTRUENODE
+
+%token <c> ADD SUB MUL DIV ASSGN STMTEND START END ID2 IF ELSE WHILE DO PRINTNUM PRINTLN LT RT LTE RTE EE NE NUMCONDITION IDCONDITION
+%token <node> ID NUM ELSESTMTLIST IFMAINSTMTLIST WMAINSTMTLIST LOOPNODE GOFALSENODE GOTRUENODE 
 %type <node> stmt_list stmt expr term
 
 
@@ -205,6 +205,12 @@ Node * node;
 		operand2 -> token = ELSESTMTLIST;
 		}
 		
+		if(condition -> token == NUM){
+			condition -> token = NUMCONDITION;
+		}else if(condition -> token == ID){
+			condition -> token = IDCONDITION;
+		}
+		
 		
 		//if, while문 Ast연결
 		
@@ -298,6 +304,11 @@ Node * node;
 			break;
 		}
 		
+		if(condition -> token == NUM){
+			condition -> token = NUMCONDITION;
+		}else if(condition -> token == ID){
+			condition -> token = IDCONDITION;
+		}
 		
 		//LABEL 삽입을 위한 노드 생성
 		Node* loopNode = (Node*)malloc(sizeof(Node));
@@ -446,6 +457,16 @@ void prtcode(Node* node)
 			break;
 		case NE:
 			fprintf(fp, "-\n");
+			fprintf(fp, "GOFALSE out%d\n", node -> outlabel);
+			break;
+			
+		case IDCONDITION:
+			fprintf(fp,"RVALUE %s\n", symtbl[node->tokenval]);
+			fprintf(fp, "GOFALSE out%d\n", node -> outlabel);
+			break;
+			
+		case NUMCONDITION:
+			fprintf(fp, "PUSH %d", node -> tokenval);
 			fprintf(fp, "GOFALSE out%d\n", node -> outlabel);
 			break;
 		default:
