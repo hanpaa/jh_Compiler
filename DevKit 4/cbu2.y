@@ -187,7 +187,7 @@ Node * node;
 	else { //그담부턴 son의 부라더에
 		node = operand1->son;
 		while (node->brother != NULL) node = node->brother;
-		operand2 -> label = operand1 -> label;
+		operand2 -> outlabel = operand1 -> label;
 		node->brother = operand2;
 		return operand1;
 		}
@@ -198,12 +198,13 @@ Node * node;
 	  
 	  // LOOP 생성을 위해 Token표시
 		operand1 -> token = MAINSTMTLIST;
-		operand1 -> son -> token = MAINSTMT;
 		operand1 -> outlabel = loopoutcnt;
 		
+		if(operand2 != NULL){
 		operand2 -> token = ELSESTMTLIST;
-		operand2 -> son -> token = ELSESTMT;
 		operand2 -> outlabel = loopoutcnt;
+		}
+		
 		
 		//if, while문
 		
@@ -213,24 +214,25 @@ Node * node;
 		newNode -> tokenval = type;
 		newNode -> son = condition;
 		newNode -> brother = NULL;
-		newNode -> son -> brother = operand1;
+		operand1 -> brother = operand2;
+		condition -> brother = operand1;
 		newNode -> outlabel = loopoutcnt;
 		
 		
 		loopoutcnt++;
 		// stmtlist brother에 붙이기
-		operand1 -> brother = operand2;
+		
 
 		
 		//condition 노드 설정 condition 연산처리, 비교연산은 stacksim에서 안되는것같음
 		//GOMINUS 등 이용?
-		condition -> condition = processCondition(condition);
+		//condition -> condition = processCondition(condition);
 		
-		free(condition -> son);
-		condition -> son = NULL;
+		//free(condition -> son);
+		//condition -> son = NULL;
 		
 		condition -> token = CONDITION;
-		condition -> tokenval = type;
+		condition -> tokenval = CONDITION;
 		condition -> label = operand1 -> label;
 		
 		return newNode;
@@ -300,15 +302,12 @@ void prtcode(Node* node)
 			//prtcode(node->condition);
 			fprintf(fp, "GOFALSE OUT%d\n", node->label);
 		break;
-		case MAINSTMT:
-			fprintf(fp, "LOOP OUT%d\n", node->label);
-			break;
 		case MAINSTMTLIST:
 		//DFS stmtlist 문 트리 끝날때, 만약 condition 만족하지 못하면 나갈 자리생성
-fprintf(fp, "LOOP IFOUT%d\n", node->outlabel);		
-fprintf(fp, "LABEL OUT%d\n", node->label);
+			fprintf(fp, "LOOP IFOUT%d\n", node->outlabel);		
+			fprintf(fp, "LABEL OUT%d\n", node->label);
 		
-		break;
+			break;
 			case IF:
 			fprintf(fp, "LABEL IFOUT%d\n", node->outlabel);
 			break;
