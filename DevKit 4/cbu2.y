@@ -69,7 +69,7 @@ int		insertsym(char *);
 }
 
 %nonassoc <cmpNum> CMP
-%token <c> ADD SUB MUL DIV ASSGN STMTEND START END ID2 IF ELSE WHILE DO WCONDITION CONDITION PRINTNUM PRINTCHAR LT RT LTE RTE EE NE
+%token <c> ADD SUB MUL DIV ASSGN STMTEND START END ID2 IF ELSE WHILE DO PRINTNUM PRINTLN LT RT LTE RTE EE NE
 %token <node> ID NUM ELSESTMTLIST IFMAINSTMTLIST WMAINSTMTLIST LOOPNODE GOFALSENODE GOTRUENODE
 %type <node> stmt_list stmt expr term
 
@@ -89,7 +89,7 @@ stmt_list: 	stmt_list stmt 	{$$=MakeListTree($1, $2);}
 
 stmt	: 	ID ASSGN expr STMTEND	{ $1->token = ID2; $$=MakeOPTree(ASSGN, $1, $3);}
 		|   PRINTNUM '(' expr ')' STMTEND {$$=MakeOPTree(PRINTNUM, $3, NULL);}
-		//|   PRINTCHAR  '(' expr ')' STMTEND {$$=MakeOPTree(PRINTCHAR, $3, NULL);}
+		|	PRINTLN '(' expr ')' STMTEND {$$=MakeOPTree(PRINTLN, $3, NULL);}
 		|   IF '(' expr ')' '{' stmt_list '}' { $$ = MakeIFConditionTree(IF,$3, $6, NULL);}
 		|   IF '(' expr ')' '{' stmt_list '}' ELSE '{' stmt_list '}' { $$ = MakeIFConditionTree(IF,$3, $6, $10);}
 		|   WHILE '(' expr ')' '{' stmt_list '}' { $$ = MakeWHILEConditionTree(WHILE, $3, $6);}
@@ -231,10 +231,12 @@ Node * node;
 		// condition 조건 맞을시 label작업
 		newNode -> outlabel = conditionLabel;
 		operand1 -> outlabel = conditionLabel;
+		if(operand2 != NULL){
 		operand2 -> outlabel = conditionLabel;
-		
+		}
 		// 조건 안맞는경우 label작업 
-		stmtLabel = conditionLabel+1;
+		stmtLabel = conditionLabel+2;
+		
 		
 		condition -> outlabel = stmtLabel;
 		// 얘 입장에선 들어옴
@@ -251,8 +253,6 @@ Node * node;
 		operand1 -> brother = goFalseNode;
 		goFalseNode -> brother = operand2;
 		
-		
-		conditionLabel++;
 		return newNode;
 	}
 	
@@ -268,10 +268,35 @@ Node * node;
 		newNode -> brother = NULL;
 		
 		operand1 -> token = WMAINSTMTLIST;
+		operand1 -> tokenval = WMAINSTMTLIST;
 		
 		//condition 노드 설정
 		//condition -> token = WCONDITION;
 		//condition -> tokenval = WCONDITION;
+		
+		//if문과 컨디션 체크 반대
+		switch(condition -> token){
+			case LT:
+			condition -> token = RTE;
+			break;
+			case RT:
+			condition -> token = LTE;
+			break;
+			case LTE:
+			condition -> token = RT;
+			break;
+			case RTE:
+			condition -> token = LT;
+			break;
+			case EE:
+			condition -> token = NE;
+			break;
+			case NE:
+			condition -> token = EE;
+			break;
+			default:
+			break;
+		}
 		
 		
 		//LABEL 삽입을 위한 노드 생성
@@ -293,7 +318,7 @@ Node * node;
 		loopNode -> label = conditionLabel;
 		operand1 -> label = conditionLabel;
 		
-		stmtLabel = conditionLabel+1;
+		stmtLabel = conditionLabel+2;
 		// outlabel 작업
 		
 		condition -> outlabel =  stmtLabel;
@@ -353,97 +378,75 @@ void prtcode(Node* node)
 			fprintf(fp, ":=\n");
 			break;
 		case PRINTNUM:
-		prtcode(node->son);
-		fprintf(fp,"OUTNUM\n");
-		break;
-		case PRINTCHAR:
-		if(node -> son -> token == NUM){
 			prtcode(node->son);
 			fprintf(fp,"OUTNUM\n");
-		}else{
-			int i = 0;
-			while(symtbl[node->tokenval][i] == '\0')
-				fprintf("PUSH %d\n", symtbl[node->tokenval][i]);
-				fprintf(fp,"OUTCH\n");
-				i++;
-		}
-		break;
-		/*
-		case CONDITION:
-			//condition 만족하지 못할때 이동,
-			//컨디션 삽입
-			fprintf(fp, "PUSH %d\n",node->condition);
-			//prtcode(node->condition);
-			fprintf(fp, "GOFALSE OUT%d\n", node->outlabel);
 			break;
-		
-		case WCONDITION:
-		
-		fprintf(fp, "GOTRUE WHILEOUT%d\n", node->label);
-		
+		case PRINTLN:
+			prtcode(node->son);
+			fprintf(fp,"OUTNUM\n");
+			fprintf(fp, "PUSH 10\n");
+			fprintf(fp, "OUTCH\n");
 			break;
-		*/
 		case IFMAINSTMTLIST:
-		//DFS stmtlist 문 트리 끝날때, 만약 condition 만족하지 못하면 나갈 자리생성
-			fprintf(fp, "GOTO OUT%d\n", node -> outlabel);		
-			fprintf(fp, "LABEL OUT%d\n", node -> outlabel);
+		//DFS stmtlist 문 트리 끝날때, 만약 condition 만족하지 못하면 나갈 자리생성	
+			fprintf(fp, "GOTO out%d\n", node -> outlabel);
 		
 			break;
 		case WMAINSTMTLIST:
-			fprintf(fp, "GOTO IN%d\n", node ->label);
+			fprintf(fp, "GOTO in%d\n", node ->label);
 			break;
 		
 		case ELSESTMTLIST:
-			fprintf(fp, "GOTO OUT%d\n", node -> outlabel);
-		break;
+			fprintf(fp, "GOTO out%d\n", node -> outlabel);
+			break;
 		
 			//AST 에서 IF 타입인 노드가 stmtlist 보다 위에 있으므로 나중에 실행  => 맨 마지막에 입력됨 전체 나감
 		case IF:
-			fprintf(fp, "LABEL OUT%d\n", node -> outlabel);
-		break;
+			fprintf(fp, "LABEL out%d\n", node -> outlabel);
+			break;
 		case WHILE:
-			fprintf(fp, "LABEL OUT%d\n", node -> outlabel);
+			fprintf(fp, "LABEL out%d\n", node -> outlabel);
 			break;
 			
 		case LOOPNODE:
-			fprintf(fp, "LABEL IN%d\n", node -> label);
+			fprintf(fp, "LABEL in%d\n", node -> label);
 			 break;
 			 
 		case GOFALSENODE:
-			fprintf(fp, "LABEL OUT%d\n", node -> label);
+			fprintf(fp, "LABEL out%d\n", node -> label);
 			break;
 		case LT:
 			fprintf(fp, "-\n");
-			fprintf(fp, "GOMINUS OUT%d\n", node -> outlabel);
+			fprintf(fp, "GOMINUS out%d\n", node -> outlabel);
+			prtcode(node -> son);
+			prtcode(node -> son -> brother);
+			fprintf(fp, "-\n");
+			fprintf(fp, "GOFALSE out%d\n", node -> outlabel);
+			
 			break;
 		case RT:
 			fprintf(fp, "-\n");
-			fprintf(fp, "GOPLUS OUT%d\n", node -> outlabel);
+			fprintf(fp, "GOPLUS out%d\n", node -> outlabel);
+			prtcode(node -> son);
+			prtcode(node -> son -> brother);
+			fprintf(fp, "-\n");
+			fprintf(fp, "GOFALSE out%d\n", node -> outlabel);
 			break;
 		case LTE:
 			fprintf(fp, "-\n");
-			fprintf(fp, "GOMINUS OUT%d\n", node -> outlabel);
-			prtcode(node -> son);
-			prtcode(node -> brother);
-			fprintf(fp, "-\n");
-			fprintf(fp, "GOTRUE OUT%d\n", node -> outlabel);
+			fprintf(fp, "GOMINUS out%d\n", node -> outlabel);
 			break;
 		case RTE:
 			fprintf(fp, "-\n");
-			fprintf(fp, "GOPLUS OUT%d\n", node -> outlabel);
-			prtcode(node -> son);
-			prtcode(node -> brother);
-			fprintf(fp, "-\n");
-			fprintf(fp, "GOTRUE OUT%d\n", node -> outlabel);
-			
+			fprintf(fp, "GOPLUS out%d\n", node -> outlabel);
 			break;		
 		case EE:
 			fprintf(fp, "-\n");
-			fprintf(fp, "GOTRUE OUT%d\n", node -> outlabel);
+			fprintf(fp, "GOTRUE out%d\n", node -> outlabel);
 			break;
 		case NE:
 			fprintf(fp, "-\n");
-			fprintf(fp, "GOFALSE OUT%d\n", node -> outlabel);
+			fprintf(fp, "GOFALSE out%d\n", node -> outlabel);
 			break;
 		default:
 			break;

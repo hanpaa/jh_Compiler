@@ -40,7 +40,7 @@ id		{letter}({letter}|{digit})*
 "start"		{return(START); }
 "end"		{return(END); }
 "printn"		{return(PRINTNUM);}
-"printc"		{return(PRINTCHAR);}
+"println"		{return(PRINTLN);}
 
 "{" |
 "}" |
